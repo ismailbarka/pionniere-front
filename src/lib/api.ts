@@ -1,5 +1,9 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3000";
 
+if (typeof window !== "undefined") {
+  console.log("[Pionniere API URL]:", API_URL);
+}
+
 export function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
   return "Something went wrong";
