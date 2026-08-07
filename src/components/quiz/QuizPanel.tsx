@@ -3,6 +3,14 @@
 import type { QuizQuestion, QuizResult } from "@/lib/types";
 import { InlineLoader } from "@/components/layout/LoadingOverlay";
 import { useLocale } from "@/lib/i18n";
+import { 
+  HelpCircle, 
+  CheckCircle2, 
+  XCircle, 
+  Award, 
+  Send, 
+  Check 
+} from "lucide-react";
 
 type QuizPanelProps = {
   questions: QuizQuestion[];
@@ -35,7 +43,10 @@ export function QuizPanel({
     <div className="quiz-panel">
       <div className="quiz-panel__head">
         <div>
-          <p className="eyebrow">{t.lessonDetail.title}</p>
+          <p className="eyebrow">
+            <HelpCircle className="w-3.5 h-3.5" />
+            {t.lessonDetail.title}
+          </p>
           <h4>{t.admin.addQuizQuestion}</h4>
           <p className="quiz-panel__copy">
             {t.lessonDetail.lead}
@@ -46,7 +57,7 @@ export function QuizPanel({
             <span style={{ width: `${progress}%` }} />
           </div>
           <small>
-            {answeredCount}/{questions.length} answered
+            {answeredCount}/{questions.length} answered ({progress}%)
           </small>
         </div>
       </div>
@@ -78,7 +89,9 @@ export function QuizPanel({
                     >
                       <span className="quiz-option__key">{key}</span>
                       <span className="quiz-option__label">{label}</span>
-                      <span className="quiz-option__check" aria-hidden="true" />
+                      <span className="quiz-option__check" aria-hidden="true">
+                        {selected && <Check className="w-3 h-3 text-white" />}
+                      </span>
                     </button>
                   );
                 })}
@@ -90,12 +103,26 @@ export function QuizPanel({
 
       <div className="quiz-panel__footer">
         <button className="btn btn--primary" disabled={disabled || isBusy} onClick={onSubmit} type="button">
-          {isBusy ? <InlineLoader label="Submitting..." /> : t.common.submitting}
+          {isBusy ? (
+            <InlineLoader label="Submitting..." />
+          ) : (
+            <>
+              <Send className="w-4 h-4" />
+              {t.common.submitting}
+            </>
+          )}
         </button>
 
         {result ? (
           <div className={`quiz-result ${result.passed ? "quiz-result--pass" : "quiz-result--fail"}`}>
-            <strong>{result.passed ? t.common.completedLabel : t.common.lockedLabel}</strong>
+            <div className="flex items-center gap-2">
+              {result.passed ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              ) : (
+                <XCircle className="w-5 h-5 text-rose-600" />
+              )}
+              <strong>{result.passed ? t.common.completedLabel : t.common.lockedLabel}</strong>
+            </div>
             <span>
               Score {result.score}% · {result.correct}/{result.total} correct
             </span>
@@ -105,3 +132,4 @@ export function QuizPanel({
     </div>
   );
 }
+

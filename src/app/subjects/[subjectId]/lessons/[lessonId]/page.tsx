@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useLocale } from "@/lib/i18n";
@@ -12,6 +13,20 @@ import { RequireAuth } from "@/components/auth/RequireAuth";
 import { LoadingOverlay } from "@/components/layout/LoadingOverlay";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { QuizPanel } from "@/components/quiz/QuizPanel";
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  BookOpen, 
+  CheckCircle2, 
+  Lock, 
+  PlayCircle, 
+  Sparkles, 
+  Award, 
+  Zap, 
+  ChevronLeft, 
+  ChevronRight,
+  Play
+} from "lucide-react";
 
 function getYoutubeEmbedUrl(url: string): string | null {
   try {
@@ -165,18 +180,23 @@ export default function LessonDetailPage() {
         <section className="page-shell">
           <header className="page-header">
             <div>
-              <p className="eyebrow">{subject?.name || "Subject"}</p>
+              <p className="eyebrow">
+                <BookOpen className="w-3.5 h-3.5" />
+                {subject?.name || "Subject"}
+              </p>
               <h1>{lesson?.title || t.lessonDetail.title}</h1>
               <p className="page-header__lead">{t.lessonDetail.lead}</p>
             </div>
 
             <div className="lesson-detail-actions">
               <Link href={`/subjects/${subjectId}/lessons`} className="btn btn--secondary">
+                <ArrowLeft className="w-4 h-4" />
                 {t.common.backToLessons}
               </Link>
               {nextLesson && passed ? (
                 <Link href={`/subjects/${subjectId}/lessons/${nextLesson.id}`} className="btn btn--primary">
                   {t.common.nextLesson}
+                  <ArrowRight className="w-4 h-4" />
                 </Link>
               ) : null}
             </div>
@@ -184,8 +204,19 @@ export default function LessonDetailPage() {
 
           {!lesson ? (
             <div className="empty-state">
-              {t.common.lessonNotFound}.{" "}
-              <Link href={`/subjects/${subjectId}/lessons`}>{t.common.returnToList}</Link>
+              <Image 
+                src="/empty-state.png" 
+                alt="Lesson not found" 
+                width={140} 
+                height={140} 
+                className="mx-auto mb-2 opacity-90"
+              />
+              <p>
+                {t.common.lessonNotFound}.{" "}
+                <Link href={`/subjects/${subjectId}/lessons`} className="text-link">
+                  {t.common.returnToList}
+                </Link>
+              </p>
             </div>
           ) : (
             <article
@@ -199,7 +230,12 @@ export default function LessonDetailPage() {
                   </p>
                   <h2>{lesson.title}</h2>
                 </div>
-                <span className={`status-badge status-badge--${lesson.status}`}>{t.status[lesson.status]}</span>
+                <span className={`status-badge status-badge--${lesson.status}`}>
+                  {lesson.status === "completed" && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
+                  {lesson.status === "locked" && <Lock className="w-3.5 h-3.5 mr-1" />}
+                  {lesson.status !== "completed" && lesson.status !== "locked" && <PlayCircle className="w-3.5 h-3.5 mr-1" />}
+                  {t.status[lesson.status]}
+                </span>
               </div>
 
               {lesson.description ? <p className="muted">{lesson.description}</p> : null}
@@ -216,13 +252,17 @@ export default function LessonDetailPage() {
                   </div>
                 ) : (
                   <a className="video-chip" href={lesson.youtubeUrl} target="_blank" rel="noreferrer">
-                    <span aria-hidden="true">▶</span> {t.common.watchVideo}
+                    <Play className="w-4 h-4 fill-current" />
+                    <span>{t.common.watchVideo}</span>
                   </a>
                 )
               ) : null}
 
               {lesson.status === "locked" ? (
-                <p className="locked-note">{t.lessonDetail.passToUnlock}</p>
+                <div className="flex items-center gap-2 locked-note">
+                  <Lock className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                  <p>{t.lessonDetail.passToUnlock}</p>
+                </div>
               ) : (
                 <>
                   <QuizPanel
@@ -240,7 +280,10 @@ export default function LessonDetailPage() {
                   {passed ? (
                     <div className="lesson-next-card">
                       <div>
-                        <p className="eyebrow">{t.common.greatWork}</p>
+                        <p className="eyebrow">
+                          <Sparkles className="w-3.5 h-3.5" />
+                          {t.common.greatWork}
+                        </p>
                         <h3>
                           {nextLesson ? t.common.unlockedNextLesson : t.common.completedSubject}
                         </h3>
@@ -256,6 +299,7 @@ export default function LessonDetailPage() {
                             href={`/subjects/${subjectId}/lessons/${previousLesson.id}`}
                             className="btn btn--secondary"
                           >
+                            <ChevronLeft className="w-4 h-4" />
                             {t.common.previousLesson}
                           </Link>
                         ) : null}
@@ -265,9 +309,11 @@ export default function LessonDetailPage() {
                             className="btn btn--primary"
                           >
                             {t.common.nextLesson}
+                            <ChevronRight className="w-4 h-4" />
                           </Link>
                         ) : (
                           <Link href={`/subjects/${subjectId}/lessons`} className="btn btn--primary">
+                            <BookOpen className="w-4 h-4" />
                             {t.common.backToLessonList}
                           </Link>
                         )}
@@ -283,3 +329,4 @@ export default function LessonDetailPage() {
     </RequireAuth>
   );
 }
+

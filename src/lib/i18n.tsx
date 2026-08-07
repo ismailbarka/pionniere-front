@@ -256,7 +256,7 @@ const messages: Record<Locale, Messages> = {
       loginCopy:
         "Connectez-vous pour continuer votre parcours de placement, ouvrir les leçons dans l’ordre et garder tous vos résultats au même endroit.",
       signupCopy:
-        "Créez votre compte en quelques secondes, puis passez le test de placement pour démarrer au bon niveau.",
+        "Créez votre compte en quelques secondes, puis passez le Test de placement pour démarrer au bon niveau.",
       loginHero: ["Placement d’abord", "Leçons débloquées dans l’ordre", "Quiz pour garder le rythme"],
       signupHero: ["Parcours guidé", "Placement qui fixe le niveau", "Quiz et leçons bien organisés"],
       loginIntroEyebrow: "Portail sécurisé",
@@ -264,7 +264,7 @@ const messages: Record<Locale, Messages> = {
       loginIntroTitle: "Se connecter",
       signupIntroTitle: "Créer un compte",
       loginIntroCopy: "Utilisez votre compte pour accéder aux matières et reprendre votre progression.",
-      signupIntroCopy: "Créez votre compte, puis passez le test de placement.",
+      signupIntroCopy: "Créez votre compte, puis passez le Test de placement.",
       username: "Nom d’utilisateur",
       password: "Mot de passe",
       newHere: "Nouveau ici ?",
@@ -286,7 +286,7 @@ const messages: Record<Locale, Messages> = {
       loadingSubjectList: "Chargement des matières",
       loadingLesson: "Chargement de la leçon",
       loadingLessons: "Chargement des leçons",
-      loadingPlacement: "Chargement du test de placement",
+      loadingPlacement: "Chargement du Test de placement",
       loadingPlacementTests: "Chargement des tests de placement",
       checkingSession: "Vérification de la session",
       submitting: "Envoi…",
@@ -319,10 +319,10 @@ const messages: Record<Locale, Messages> = {
       openLesson: "Ouvrir la leçon",
       noSubjects: "Aucune matière disponible pour le moment.",
       noLessons: "Aucune leçon n’est disponible pour cette matière.",
-      noPlacementTests: "Aucun test de placement disponible.",
-      placementReady: "Le test de placement est prêt.",
+      noPlacementTests: "Aucun Test de placement disponible.",
+      placementReady: "Le Test de placement est prêt.",
       placementComplete: "Placement terminé",
-      placementRequired: "Un test de placement est requis.",
+      placementRequired: "Un Test de placement est requis.",
       answerEveryQuestion: "Veuillez répondre à toutes les questions.",
       lessonPath: "Parcours de leçons",
       chooseSubject: "Choisir une matière",
@@ -362,12 +362,12 @@ const messages: Record<Locale, Messages> = {
       title: "Test de placement",
       lead: "Répondez à quelques questions pour que nous puissions vous placer au bon niveau dans chaque matière.",
       submitAssessment: "Envoyer le test",
-      noPlacementTests: "Aucun test de placement disponible pour le moment.",
-      submitPlacementTest: "Envoyer le test de placement",
+      noPlacementTests: "Aucun Test de placement disponible pour le moment.",
+      submitPlacementTest: "Envoyer le Test de placement",
       passSummary: "Le placement est terminé.",
       // NEW FRENCH KEYS
       videoEyebrow: "Avant de commencer",
-      videoTitle: "Comment fonctionne le test de placement",
+      videoTitle: "Comment fonctionne le Test de placement",
       videoLead: "Regardez cette présentation rapide pour comprendre comment les questions sont notées et ce qui vous attend.",
     },
     admin: {
@@ -390,7 +390,7 @@ const messages: Record<Locale, Messages> = {
       passPercent: "Pourcentage de réussite",
       chooseSubject: "Choisir une matière",
       chooseLesson: "Choisir une leçon",
-      addPlacementTest: "Créer un test de placement",
+      addPlacementTest: "Créer un Test de placement",
       addAnotherQuestion: "Ajouter une autre question",
       createPlacementTest: "Créer le test",
       placementQuestion: "Question",
@@ -635,12 +635,16 @@ type LocaleContextValue = {
 const LocaleContext = createContext<LocaleContextValue | null>(null);
 
 export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (typeof window === "undefined") return "fr";
+  const [locale, setLocaleState] = useState<Locale>("fr");
+
+  useEffect(() => {
     const saved = window.localStorage.getItem("edu_locale") as Locale | null;
-    if (saved === "ar" || saved === "fr") return saved;
-    return navigator.language.toLowerCase().startsWith("ar") ? "ar" : "fr";
-  });
+    if (saved === "ar" || saved === "fr") {
+      setLocaleState(saved);
+    } else if (navigator.language.toLowerCase().startsWith("ar")) {
+      setLocaleState("ar");
+    }
+  }, []);
 
   useEffect(() => {
     window.localStorage.setItem("edu_locale", locale);

@@ -1,12 +1,32 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth-context";
 import type { AuthMode } from "@/lib/types";
 import { useLocale } from "@/lib/i18n";
 import { FadeIn, PageTransition } from "@/components/layout/PageTransition";
 import { InlineLoader } from "@/components/layout/LoadingOverlay";
+import { 
+  CheckCircle2, 
+  AlertCircle, 
+  Sparkles, 
+  ShieldCheck 
+} from "lucide-react";
+
+declare global {
+  interface Window {
+    __googleGsiInitialized?: boolean;
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: Record<string, unknown>) => void;
+          renderButton: (parent: HTMLElement, options: Record<string, unknown>) => void;
+        };
+      };
+    };
+  }
+}
 
 type AuthFormProps = {
   initialMode?: AuthMode;
@@ -15,18 +35,62 @@ type AuthFormProps = {
 };
 
 export function AuthForm({ initialMode = "login", switchHref, backHref = "/" }: AuthFormProps) {
-  const { login, register, isBusy } = useAuth();
+  const { login, register, googleLogin, resendVerification, isBusy, message } = useAuth();
   const { locale, t } = useLocale();
   const [authMode] = useState<AuthMode>(initialMode);
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    // Load Google GSI script
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      if (window.google?.accounts?.id) {
+        if (!window.__googleGsiInitialized) {
+          window.google.accounts.id.initialize({
+            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+            callback: (response: { credential?: string }) => {
+              if (response.credential) {
+                void googleLogin(response.credential);
+              }
+            },
+          });
+          window.__googleGsiInitialized = true;
+        }
+        const target = document.getElementById("googleBtn");
+        if (target) {
+          window.google.accounts.id.renderButton(target, {
+            theme: "outline",
+            size: "large",
+            width: 320,
+            text: authMode === "login" ? "signin_with" : "signup_with",
+          });
+        }
+      }
+    };
+    document.body.appendChild(script);
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, [authMode, googleLogin]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (authMode === "login") {
-      await login(username, password);
-    } else {
-      await register(username, password);
+    try {
+      if (authMode === "login") {
+        await login(email, password);
+      } else {
+        await register(email, password);
+        setIsSubmitted(true);
+      }
+    } catch {
+      // Error message is stored in authContext message state
     }
   }
 
@@ -38,8 +102,6 @@ export function AuthForm({ initialMode = "login", switchHref, backHref = "/" }: 
       <section className="auth-shell">
         <FadeIn>
           <div className="auth-hero">
-            {/* <span className="auth-hero__badge">{isLogin ? t.auth.loginEyebrow : t.auth.signupEyebrow}</span> */}
-            {/* <p className="eyebrow">{locale === "fr" ? "Apprentissage personnalisé" : "تعلم مخصص"}</p> */}
             <h1>{isLogin ? t.auth.loginTitle : t.auth.signupTitle}</h1>
             <p className="auth-hero__copy">{isLogin ? t.auth.loginCopy : t.auth.signupCopy}</p>
             <div className="auth-hero__stats">
@@ -58,7 +120,10 @@ export function AuthForm({ initialMode = "login", switchHref, backHref = "/" }: 
             </div>
             <ul className="auth-hero__features">
               {(isLogin ? t.home.betterItems : t.home.betterItems).map((feature) => (
-                <li key={feature}>{feature}</li>
+                <li key={feature} className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                  <span>{feature}</span>
+                </li>
               ))}
             </ul>
           </div>
@@ -66,51 +131,44 @@ export function AuthForm({ initialMode = "login", switchHref, backHref = "/" }: 
 
         <FadeIn delay={120}>
           <form className="auth-card" onSubmit={handleSubmit}>
-          <div className="auth-tabs" aria-hidden="true">
-            <div className="bg-primary w-full flex justify-center items-center p-2">
-              {/* <span className="auth-tabs__label is-active text-white">
-                {isLogin ? t.nav.signIn : t.nav.getStarted}
-              </span> */}
-            </div>
-          </div>
-
             <div className="auth-card__body">
               <div className="auth-card__intro">
-                <p className="auth-card__eyebrow">{isLogin ? t.auth.loginIntroEyebrow : t.auth.signupIntroEyebrow}</p>
+                <p className="auth-card__eyebrow">
+                  <Sparkles className="w-3.5 h-3.5 inline mr-1" />
+                  {isLogin ? t.auth.loginIntroEyebrow : t.auth.signupIntroEyebrow}
+                </p>
                 <h2>{isLogin ? t.auth.loginIntroTitle : t.auth.signupIntroTitle}</h2>
                 <p>{isLogin ? t.auth.loginIntroCopy : t.auth.signupIntroCopy}</p>
               </div>
 
-              <label className="field">
-                <span>{t.auth.username}</span>
-                <input
-                  value={username}
-                  onChange={(event) => setUsername(event.target.value)}
-                  autoComplete="username"
-                  required
-                />
-              </label>
+              {message && (
+                <div className={`auth-message ${isSubmitted ? "auth-message--success" : "auth-message--error"}`}>
+                  <div className="flex items-center gap-2">
+                    {isSubmitted ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
+                    )}
+                    <p>{message}</p>
+                  </div>
+                  {authMode === "signup" && isSubmitted && (
+                    <button
+                      type="button"
+                      className="btn btn--link"
+                      onClick={() => void resendVerification(email)}
+                      style={{ marginTop: '8px', fontSize: '0.85rem' }}
+                    >
+                      Renvoyer l'email de vérification
+                    </button>
+                  )}
+                </div>
+              )}
 
-              <label className="field">
-                <span>{t.auth.password}</span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  autoComplete={authMode === "login" ? "current-password" : "new-password"}
-                  required
-                />
-              </label>
-
-              <button className="btn btn--primary btn--block" disabled={isBusy} type="submit">
-                {isBusy ? (
-                  <InlineLoader label={isLogin ? "Signing in..." : "Saving..."} />
-                ) : isLogin ? (
-                  t.nav.signIn
-                ) : (
-                  t.nav.getStarted
-                )}
-              </button>
+              {(!isSubmitted || isLogin) && (
+                <>
+                  <div id="googleBtn" style={{ minHeight: '40px', width: '100%' }}></div>
+                </>
+              )}
 
               <p className="auth-card__footer">
                 {isLogin ? t.auth.newHere : t.auth.alreadyHave}{" "}
@@ -123,11 +181,8 @@ export function AuthForm({ initialMode = "login", switchHref, backHref = "/" }: 
             </div>
           </form>
         </FadeIn>
-
-        {/* <p className="auth-back">
-          <Link href={backHref}>{t.auth.backHome}</Link>
-        </p> */}
       </section>
     </PageTransition>
   );
 }
+

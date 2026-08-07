@@ -20,13 +20,14 @@ type AuthContextValue = {
   message: string;
   isInitializing: boolean;
   isBusy: boolean;
-  requiresPlacementTest: boolean;
   authHeaders: Record<string, string>;
   setMessage: (message: string) => void;
   setStatus: (status: Status) => void;
-  setRequiresPlacementTest: (value: boolean) => void;
-  login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  googleLogin: (idToken: string) => Promise<void>;
+  completeProfile: (username: string, schoolLevel: number) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
   logout: () => void;
   apiRequest: <T>(path: string, options?: RequestInit) => Promise<T>;
 };
@@ -40,7 +41,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<Status>("idle");
   const [message, setMessage] = useState("");
   const [isInitializing, setIsInitializing] = useState(true);
-  const [requiresPlacementTest, setRequiresPlacementTest] = useState(false);
 
   const authHeaders = useMemo(
     () => ({
@@ -64,19 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem("edu_user", JSON.stringify(nextUser));
   }, []);
 
-  const persistPlacementRequirement = useCallback((value: boolean) => {
-    setRequiresPlacementTest(value);
-    window.localStorage.setItem("edu_requires_placement", value ? "1" : "0");
-  }, []);
-
   const clearSession = useCallback(() => {
     window.localStorage.removeItem("edu_token");
     window.localStorage.removeItem("edu_user");
-    window.localStorage.removeItem("edu_requires_placement");
     setToken("");
     setUser(null);
     setMessage("");
-    setRequiresPlacementTest(false);
   }, []);
 
   const logout = useCallback(() => {
@@ -85,40 +78,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearSession, router]);
 
   const routeAfterLogin = useCallback(
-    async (accessToken: string, nextUser: User, requiresPlacementTest: boolean, nextStep: string) => {
-      persistPlacementRequirement(requiresPlacementTest);
+    async (_accessToken: string, nextUser: User, _requiresPlacementTest: boolean, nextStep: string) => {
+      if (!nextUser.profileCompleted || nextStep === "complete-profile") {
+        router.push("/complete-profile");
+        return;
+      }
 
       if (nextStep === "admin" || nextUser.role === "ADMIN") {
         router.push("/admin/subjects");
         return;
       }
 
-      if (requiresPlacementTest) {
-        router.push("/placement");
-        return;
-      }
-
-      try {
-        await request("/subjects", {
-          headers: { Authorization: `Bearer ${accessToken}` },
-        });
-        persistPlacementRequirement(false);
-        router.push("/subjects");
-      } catch (error) {
-        const text = getErrorMessage(error);
-        if (text.toLowerCase().includes("placement")) {
-          persistPlacementRequirement(true);
-          router.push("/placement");
-        } else {
-          throw error;
-        }
-      }
+      router.push("/subjects");
     },
-    [persistPlacementRequirement, router],
+    [router],
   );
 
   const login = useCallback(
-    async (username: string, password: string) => {
+    async (email: string, password: string) => {
       setStatus("loading");
       setMessage("");
 
@@ -126,12 +103,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await request<{
           accessToken: string;
           requiresPlacementTest: boolean;
-          nextStep: "admin" | "placement-test" | "subjects";
+          profileCompleted: boolean;
+          nextStep: string;
           user: User;
         }>("/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
+          body: JSON.stringify({ email, password }),
         });
 
         persistSession(data.accessToken, data.user);
@@ -152,24 +130,117 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const register = useCallback(
-    async (username: string, password: string) => {
+    async (email: string, password: string) => {
       setStatus("loading");
       setMessage("");
 
       try {
-        await request<User>("/auth/register", {
+        const res = await request<{ message: string }>("/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ username, password }),
+          body: JSON.stringify({ email, password }),
         });
-        await login(username, password);
+        setMessage(res.message);
       } catch (error) {
         setMessage(getErrorMessage(error));
-        setStatus("idle");
         throw error;
+      } finally {
+        setStatus("idle");
       }
     },
-    [login],
+    [],
+  );
+
+  const googleLogin = useCallback(
+    async (idToken: string) => {
+      setStatus("loading");
+      setMessage("");
+
+      try {
+        const data = await request<{
+          accessToken: string;
+          requiresPlacementTest: boolean;
+          profileCompleted: boolean;
+          nextStep: string;
+          user: User;
+        }>("/auth/google", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ idToken }),
+        });
+
+        persistSession(data.accessToken, data.user);
+        await routeAfterLogin(
+          data.accessToken,
+          data.user,
+          data.requiresPlacementTest,
+          data.nextStep,
+        );
+      } catch (error) {
+        setMessage(getErrorMessage(error));
+        throw error;
+      } finally {
+        setStatus("idle");
+      }
+    },
+    [persistSession, routeAfterLogin],
+  );
+
+  const completeProfile = useCallback(
+    async (username: string, schoolLevel: number) => {
+      setStatus("loading");
+      setMessage("");
+
+      try {
+        const data = await request<{
+          profileCompleted: boolean;
+          requiresPlacementTest: boolean;
+          nextStep: string;
+          user: User;
+        }>("/auth/complete-profile", {
+          method: "POST",
+          headers: authHeaders,
+          body: JSON.stringify({ username, schoolLevel }),
+        });
+
+        setUser(data.user);
+        window.localStorage.setItem("edu_user", JSON.stringify(data.user));
+
+        await routeAfterLogin(
+          token,
+          data.user,
+          data.requiresPlacementTest,
+          data.nextStep,
+        );
+      } catch (error) {
+        setMessage(getErrorMessage(error));
+        throw error;
+      } finally {
+        setStatus("idle");
+      }
+    },
+    [authHeaders, token, routeAfterLogin],
+  );
+
+  const resendVerification = useCallback(
+    async (email: string) => {
+      setStatus("loading");
+      setMessage("");
+      try {
+        const res = await request<{ message: string }>("/auth/resend-verification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        });
+        setMessage(res.message);
+      } catch (error) {
+        setMessage(getErrorMessage(error));
+        throw error;
+      } finally {
+        setStatus("idle");
+      }
+    },
+    [],
   );
 
   useEffect(() => {
@@ -178,7 +249,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     void (async () => {
       const savedToken = window.localStorage.getItem("edu_token");
       const savedUser = window.localStorage.getItem("edu_user");
-      const savedPlacementRequirement = window.localStorage.getItem("edu_requires_placement");
 
       if (!savedToken || !savedUser) {
         if (active) setIsInitializing(false);
@@ -189,25 +259,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!active) return;
       setToken(savedToken);
       setUser(parsedUser);
-      setRequiresPlacementTest(savedPlacementRequirement === "1");
 
       try {
-        if (parsedUser.role === "ADMIN") {
+        if (!parsedUser.profileCompleted) {
+          router.replace("/complete-profile");
+        } else if (parsedUser.role === "ADMIN") {
           router.replace("/admin/subjects");
         } else {
-          try {
-            await request("/subjects", {
-              headers: { Authorization: `Bearer ${savedToken}` },
-            });
-            if (active) persistPlacementRequirement(false);
-            router.replace("/subjects");
-          } catch (error) {
-            const text = getErrorMessage(error);
-            if (text.toLowerCase().includes("placement")) {
-              if (active) persistPlacementRequirement(true);
-              router.replace("/placement");
-            }
-          }
+          router.replace("/subjects");
         }
       } finally {
         if (active) setIsInitializing(false);
@@ -217,7 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       active = false;
     };
-  }, [persistPlacementRequirement, router]);
+  }, [router]);
 
   const value = useMemo(
     () => ({
@@ -227,13 +286,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       message,
       isInitializing,
       isBusy: status === "loading",
-      requiresPlacementTest,
       authHeaders,
       setMessage,
       setStatus,
-      setRequiresPlacementTest: persistPlacementRequirement,
       login,
       register,
+      googleLogin,
+      completeProfile,
+      resendVerification,
       logout,
       apiRequest,
     }),
@@ -243,13 +303,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       status,
       message,
       isInitializing,
-      requiresPlacementTest,
       authHeaders,
       login,
       register,
+      googleLogin,
+      completeProfile,
+      resendVerification,
       logout,
       apiRequest,
-      persistPlacementRequirement,
     ],
   );
 

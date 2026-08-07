@@ -2,15 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useLocale } from "@/lib/i18n";
-import { API_URL } from "@/lib/api";
-import { getErrorMessage } from "@/lib/api";
+import { API_URL, getErrorMessage } from "@/lib/api";
 import type { Lesson, Subject } from "@/lib/types";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { LoadingOverlay } from "@/components/layout/LoadingOverlay";
 import { FadeIn, PageTransition } from "@/components/layout/PageTransition";
+import { 
+  BookOpen, 
+  CheckCircle2, 
+  Lock, 
+  PlayCircle, 
+  ArrowRight, 
+  Sparkles, 
+  ArrowLeft 
+} from "lucide-react";
 
 export default function SubjectLessonsIndexPage() {
   const params = useParams<{ subjectId: string }>();
@@ -74,9 +83,19 @@ export default function SubjectLessonsIndexPage() {
       ) : (
         <PageTransition>
           <section className="page-shell">
+            <div className="mb-4">
+              <Link href="/subjects" className="btn btn--ghost text-sm py-1">
+                <ArrowLeft className="w-4 h-4 mr-1" />
+                {t.nav.subjects}
+              </Link>
+            </div>
+
             <header className="page-header">
               <div>
-                <p className="eyebrow">{subject?.name || "Subject"}</p>
+                <p className="eyebrow">
+                  <BookOpen className="w-3.5 h-3.5" />
+                  {subject?.name || "Subject"}
+                </p>
                 <h1>{t.lessonIndex.title}</h1>
                 <p className="page-header__lead">{t.lessonIndex.lead}</p>
               </div>
@@ -91,6 +110,7 @@ export default function SubjectLessonsIndexPage() {
                 </div>
                 {nextLesson ? (
                   <Link href={`/subjects/${subjectId}/lessons/${nextLesson.id}`} className="btn btn--primary">
+                    <Sparkles className="w-4 h-4" />
                     {nextLesson.status === "completed" ? t.lessonIndex.reviewNextLabel : t.lessonIndex.continueLabel}
                   </Link>
                 ) : null}
@@ -98,36 +118,61 @@ export default function SubjectLessonsIndexPage() {
             </header>
 
             {orderedLessons.length === 0 ? (
-              <div className="empty-state">{t.common.noLessons}</div>
+              <div className="empty-state">
+                <Image 
+                  src="/empty-state.png" 
+                  alt="No lessons" 
+                  width={140} 
+                  height={140} 
+                  className="mx-auto mb-2 opacity-90"
+                />
+                <p>{t.common.noLessons}</p>
+              </div>
             ) : (
               <div className="lesson-list">
-                {orderedLessons.map((lesson, index) => (
-                  <FadeIn key={lesson.id} delay={index * 70}>
-                    <Link
-                      href={`/subjects/${subjectId}/lessons/${lesson.id}`}
-                      className={`lesson-list-card lesson-list-card--${lesson.status}`}
-                    >
-                      <div className="lesson-list-card__meta">
-                        <span className={`lesson-step lesson-step--small ${lesson.status}`}>{lesson.order}</span>
-                        <div>
-                          <p className="eyebrow">
-                            {t.lessonIndex.lessonPrefix} {lesson.order}
-                          </p>
-                          <h2>{lesson.title}</h2>
-                          <p>{lesson.description || t.lessonIndex.openLessonCopy}</p>
+                {orderedLessons.map((lesson, index) => {
+                  const isCompleted = lesson.status === "completed";
+                  const isLocked = lesson.status === "locked";
+
+                  return (
+                    <FadeIn key={lesson.id} delay={index * 70}>
+                      <Link
+                        href={`/subjects/${subjectId}/lessons/${lesson.id}`}
+                        className={`lesson-list-card lesson-list-card--${lesson.status}`}
+                      >
+                        <div className="lesson-list-card__meta">
+                          <span className={`lesson-step lesson-step--small ${lesson.status}`}>
+                            {isCompleted ? (
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            ) : isLocked ? (
+                              <Lock className="w-4 h-4 text-slate-400" />
+                            ) : (
+                              lesson.order
+                            )}
+                          </span>
+                          <div>
+                            <p className="eyebrow">
+                              {t.lessonIndex.lessonPrefix} {lesson.order}
+                            </p>
+                            <h2>{lesson.title}</h2>
+                            <p>{lesson.description || t.lessonIndex.openLessonCopy}</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="lesson-list-card__side">
-                        <span className={`status-badge status-badge--${lesson.status}`}>
-                          {t.status[lesson.status]}
-                        </span>
-                        <span className="lesson-list-card__arrow" aria-hidden="true">
-                          →
-                        </span>
-                      </div>
-                    </Link>
-                  </FadeIn>
-                ))}
+                        <div className="lesson-list-card__side">
+                          <span className={`status-badge status-badge--${lesson.status}`}>
+                            {isCompleted && <CheckCircle2 className="w-3.5 h-3.5 mr-1" />}
+                            {isLocked && <Lock className="w-3.5 h-3.5 mr-1" />}
+                            {!isCompleted && !isLocked && <PlayCircle className="w-3.5 h-3.5 mr-1" />}
+                            {t.status[lesson.status]}
+                          </span>
+                          <span className="lesson-list-card__arrow" aria-hidden="true">
+                            <ArrowRight className="w-5 h-5" />
+                          </span>
+                        </div>
+                      </Link>
+                    </FadeIn>
+                  );
+                })}
               </div>
             )}
           </section>
@@ -136,3 +181,4 @@ export default function SubjectLessonsIndexPage() {
     </RequireAuth>
   );
 }
+

@@ -11,7 +11,7 @@ const labelMap: Record<string, { fr: string; ar: string }> = {
   "Loading lesson list": { fr: "Chargement de la liste des leçons", ar: "جارٍ تحميل قائمة الدروس" },
   "Loading lesson": { fr: "Chargement de la leçon", ar: "جارٍ تحميل الدرس" },
   "Loading lessons": { fr: "Chargement des leçons", ar: "جارٍ تحميل الدروس" },
-  "Loading placement test": { fr: "Chargement du test de placement", ar: "جارٍ تحميل اختبار التحديد" },
+  "Loading placement test": { fr: "Chargement du Test de placement", ar: "جارٍ تحميل اختبار التحديد" },
   "Loading placement tests": { fr: "Chargement des tests de placement", ar: "جارٍ تحميل اختبارات التحديد" },
   "Preparing your classroom": { fr: "Préparation de votre espace", ar: "جارٍ تجهيز مساحتك" },
   "Submitting...": { fr: "Envoi…", ar: "جارٍ الإرسال…" },

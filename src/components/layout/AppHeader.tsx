@@ -4,17 +4,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useLocale, type Locale } from "@/lib/i18n";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { Settings, LogOut } from "lucide-react";
 
-const studentLinks = [
-  { href: "/subjects", key: "subjects" as const },
-  { href: "/placement", key: "placement" as const },
-];
+const studentLinks: Array<{ href: string; key: "subjects" | "placement" }> = [];
 
 const adminLinks = [
   { href: "/admin/subjects", key: "adminSubjects" as const },
   { href: "/admin/lessons", key: "adminLessons" as const },
-  { href: "/admin/placement", key: "adminPlacement" as const },
 ];
 
 function LocaleButton({
@@ -35,24 +32,36 @@ function LocaleButton({
 
 export function AppHeader() {
   const pathname = usePathname();
-  const { user, logout, requiresPlacementTest } = useAuth();
+  const { user, logout } = useAuth();
   const { locale, setLocale, t } = useLocale();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
-  // Close the drawer when the route changes
+  // Close drawer and dropdown when route changes
   useEffect(() => {
     setMenuOpen(false);
+    setProfileOpen(false);
   }, [pathname]);
+
+  // Close profile dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const isPublicPage = pathname === "/" || pathname === "/login" || pathname === "/signup";
   const isAuthPage = pathname === "/login" || pathname === "/signup";
-  const links =
-    user?.role === "ADMIN"
-      ? adminLinks
-      : requiresPlacementTest
-        ? studentLinks
-        : studentLinks.filter((link) => link.href !== "/placement");
+  const links = user?.role === "ADMIN" ? adminLinks : studentLinks;
   const brandHref = user ? (user.role === "ADMIN" ? "/admin/subjects" : "/subjects") : "/";
+
+  const displayName = user?.username || user?.email || "";
+  const avatarLetter = displayName.slice(0, 1).toUpperCase();
 
   return (
     <header className="site-header">
@@ -72,7 +81,6 @@ export function AppHeader() {
           </span>
           <span className="brand__text">
             <strong>{t.brand}</strong>
-            <small>{t.brandTagline}</small>
           </span>
         </Link>
 
@@ -89,11 +97,7 @@ export function AppHeader() {
             ))}
           </nav>
         ) : isPublicPage ? (
-          <nav className="site-nav site-nav--public" aria-label="Public">
-            {/* <Link href="/" className={`site-nav__link ${pathname === "/" ? "is-active" : ""}`}>
-              {t.nav.home}
-            </Link> */}
-          </nav>
+          <nav className="site-nav site-nav--public" aria-label="Public" />
         ) : null}
 
         <div className="site-header__actions">
@@ -103,26 +107,67 @@ export function AppHeader() {
           </div>
 
           {user ? (
-            <>
-              <div className="user-chip">
-                <span className="user-chip__avatar">{user.username.slice(0, 1).toUpperCase()}</span>
-                <span className="user-chip__meta">
-                  <strong>{user.username}</strong>
-                  <small>{user.role === "ADMIN" ? t.role.admin : t.role.student}</small>
-                </span>
-              </div>
-              <button type="button" className="btn btn--ghost" onClick={logout}>
-                {t.nav.signOut}
+            <div className="user-menu" ref={profileRef}>
+              {/* Avatar circle button */}
+              <button
+                type="button"
+                className="user-avatar-btn"
+                onClick={() => setProfileOpen(!profileOpen)}
+                aria-expanded={profileOpen}
+                aria-label="User menu"
+              >
+                <span className="user-avatar">{avatarLetter}</span>
               </button>
-            </>
-) : isAuthPage ? (
-  <Link
-    href={pathname === "/login" ? "/signup" : "/login"}
-    className="btn btn--primary"
-  >
-    {pathname === "/login" ? t.nav.getStarted : t.nav.signIn}
-  </Link>
-) : (
+
+              {/* Dropdown panel */}
+              {profileOpen && (
+                <div className="user-dropdown">
+                  {/* Header: big avatar + name */}
+                  <div className="user-dropdown__header">
+                    <span className="user-avatar user-avatar--lg">{avatarLetter}</span>
+                    <div>
+                      <p className="user-dropdown__name">{displayName}</p>
+                      <p className="user-dropdown__role">
+                        {user.role === "ADMIN" ? t.role.admin : t.role.student}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="user-dropdown__divider" />
+
+                  {/* Settings — placeholder for later */}
+                  <button
+                    type="button"
+                    className="user-dropdown__item user-dropdown__item--disabled"
+                    disabled
+                    title="Bientôt disponible"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Paramètres</span>
+                  </button>
+
+                  <div className="user-dropdown__divider" />
+
+                  {/* Logout */}
+                  <button
+                    type="button"
+                    className="user-dropdown__item user-dropdown__item--danger"
+                    onClick={() => { setProfileOpen(false); logout(); }}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>{t.nav.signOut}</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : isAuthPage ? (
+            <Link
+              href={pathname === "/login" ? "/signup" : "/login"}
+              className="btn btn--primary"
+            >
+              {pathname === "/login" ? t.nav.getStarted : t.nav.signIn}
+            </Link>
+          ) : (
             <>
               <Link href="/login" className="btn btn--ghost">
                 {t.nav.signIn}
@@ -133,7 +178,7 @@ export function AppHeader() {
             </>
           )}
 
-          {/* Mobile hamburger button */}
+          {/* Mobile hamburger */}
           <button
             type="button"
             className="menu-toggle"
@@ -143,14 +188,14 @@ export function AppHeader() {
           >
             {menuOpen ? (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             ) : (
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <line x1="3" y1="12" x2="21" y2="12"></line>
-                <line x1="3" y1="6" x2="21" y2="6"></line>
-                <line x1="3" y1="18" x2="21" y2="18"></line>
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
             )}
           </button>
@@ -161,7 +206,7 @@ export function AppHeader() {
       {menuOpen && (
         <div className="mobile-drawer">
           {user && !isAuthPage ? (
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }} aria-label="Mobile Main">
+            <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }} aria-label="Mobile Main">
               {links.map((link) => (
                 <Link
                   key={link.href}
@@ -173,7 +218,7 @@ export function AppHeader() {
               ))}
             </nav>
           ) : isPublicPage ? (
-            <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }} aria-label="Mobile Public">
+            <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }} aria-label="Mobile Public">
               <Link href="/" className={`mobile-drawer__link ${pathname === "/" ? "is-active" : ""}`}>
                 {t.nav.home}
               </Link>
@@ -181,39 +226,46 @@ export function AppHeader() {
           ) : null}
 
           <div className="mobile-drawer__footer">
-            <div className="locale-switcher" style={{ width: '100%', justifyContent: 'center' }} aria-label={t.switchLabel}>
+            <div className="locale-switcher" style={{ width: "100%", justifyContent: "center" }} aria-label={t.switchLabel}>
               <LocaleButton active={locale === "fr"} locale="fr" onClick={() => setLocale("fr")} />
               <LocaleButton active={locale === "ar"} locale="ar" onClick={() => setLocale("ar")} />
             </div>
 
             {user ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div className="user-chip" style={{ display: 'flex', border: '1px solid var(--border)', padding: '10px 14px', borderRadius: 'var(--radius-md)' }}>
-                  <span className="user-chip__avatar">{user.username.slice(0, 1).toUpperCase()}</span>
-                  <span className="user-chip__meta">
-                    <strong>{user.username}</strong>
-                    <small>{user.role === "ADMIN" ? t.role.admin : t.role.student}</small>
-                  </span>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", border: "1px solid var(--border)", borderRadius: "var(--radius-md)" }}>
+                  <span className="user-avatar">{avatarLetter}</span>
+                  <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{displayName}</span>
                 </div>
-                <button type="button" className="btn btn--ghost" style={{ width: '100%', justifyContent: 'center' }} onClick={logout}>
+                <button
+                  type="button"
+                  className="btn btn--ghost"
+                  style={{ width: "100%", justifyContent: "center" }}
+                  onClick={logout}
+                >
+                  <LogOut className="w-4 h-4" />
                   {t.nav.signOut}
                 </button>
               </div>
             ) : isAuthPage ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <Link href="/" className="btn btn--ghost" style={{ width: '100%', justifyContent: 'center' }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <Link href="/" className="btn btn--ghost" style={{ width: "100%", justifyContent: "center" }}>
                   {t.nav.home}
                 </Link>
-                <Link href={pathname === "/login" ? "/signup" : "/login"} className="btn btn--primary" style={{ width: '100%', justifyContent: 'center' }}>
+                <Link
+                  href={pathname === "/login" ? "/signup" : "/login"}
+                  className="btn btn--primary"
+                  style={{ width: "100%", justifyContent: "center" }}
+                >
                   {pathname === "/login" ? t.nav.getStarted : t.nav.signIn}
                 </Link>
               </div>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <Link href="/login" className="btn btn--ghost" style={{ width: '100%', justifyContent: 'center' }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <Link href="/login" className="btn btn--ghost" style={{ width: "100%", justifyContent: "center" }}>
                   {t.nav.signIn}
                 </Link>
-                <Link href="/signup" className="btn btn--primary" style={{ width: '100%', justifyContent: 'center' }}>
+                <Link href="/signup" className="btn btn--primary" style={{ width: "100%", justifyContent: "center" }}>
                   {t.nav.getStarted}
                 </Link>
               </div>

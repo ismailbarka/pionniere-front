@@ -2,13 +2,18 @@ export type AuthMode = "login" | "signup";
 
 export type User = {
   id: number;
-  username: string;
+  email: string;
+  username: string | null;
   role: "ADMIN" | "STUDENT" | string;
+  profileCompleted: boolean;
+  schoolLevel: number | null;
 };
 
 export type Subject = {
   id: number;
   name: string;
+  schoolLevel: number;
+  progress: number;
 };
 
 export type PlacementQuestion = {

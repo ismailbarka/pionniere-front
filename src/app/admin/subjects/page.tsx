@@ -8,18 +8,38 @@ import { getErrorMessage } from "@/lib/api";
 import type { Subject } from "@/lib/types";
 import { InlineLoader } from "@/components/layout/LoadingOverlay";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { 
+  Plus, 
+  Trash2, 
+  RotateCw, 
+  Filter, 
+  BookOpen, 
+  GraduationCap 
+} from "lucide-react";
+
+const levelLabels: Record<number, { fr: string; ar: string }> = {
+  1: { fr: "1ère année (Niveau 1)", ar: "السنة 1 (المستوى 1)" },
+  2: { fr: "2ème année (Niveau 2)", ar: "السنة 2 (المستوى 2)" },
+  3: { fr: "3ème année (Niveau 3)", ar: "السنة 3 (المستوى 3)" },
+  4: { fr: "4ème année (Niveau 4)", ar: "السنة 4 (المستوى 4)" },
+  5: { fr: "5ème année (Niveau 5)", ar: "السنة 5 (المستوى 5)" },
+  6: { fr: "6ème année (Niveau 6)", ar: "السنة 6 (المستوى 6)" },
+};
 
 export default function AdminSubjectsPage() {
   const { authHeaders, isBusy, setStatus, setMessage } = useAuth();
   const { locale, t } = useLocale();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectName, setSubjectName] = useState("");
+  const [schoolLevel, setSchoolLevel] = useState<number>(1);
+  const [filterLevel, setFilterLevel] = useState<number | "ALL">("ALL");
   const [isLoading, setIsLoading] = useState(true);
 
   const loadSubjects = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${API_URL}/subjects`, {
+      const url = filterLevel === "ALL" ? `${API_URL}/subjects` : `${API_URL}/subjects?schoolLevel=${filterLevel}`;
+      const response = await fetch(url, {
         headers: authHeaders,
       });
       const data = await response.json().catch(() => null);
@@ -30,7 +50,7 @@ export default function AdminSubjectsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [authHeaders, setMessage]);
+  }, [authHeaders, filterLevel, setMessage]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -46,7 +66,7 @@ export default function AdminSubjectsPage() {
       const response = await fetch(`${API_URL}/subjects`, {
         method: "POST",
         headers: authHeaders,
-        body: JSON.stringify({ name: subjectName }),
+        body: JSON.stringify({ name: subjectName, schoolLevel }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.message || "Request failed");
@@ -84,33 +104,108 @@ export default function AdminSubjectsPage() {
     <PageTransition>
       <div className="admin-grid">
         <form className="card admin-form" onSubmit={createSubject}>
-          <h2>{t.admin.createSubject}</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <Plus className="w-5 h-5 text-blue-600" />
+            <h2>{t.admin.createSubject}</h2>
+          </div>
           <label className="field">
             <span>{t.admin.subjectName}</span>
-            <input value={subjectName} onChange={(event) => setSubjectName(event.target.value)} required />
+            <input value={subjectName} onChange={(event) => setSubjectName(event.target.value)} placeholder="ex. Mathématiques" required />
           </label>
-          <button className="btn btn--primary" disabled={isBusy} type="submit">
-            {isBusy ? <InlineLoader label="Saving..." /> : t.admin.addSubject}
+          <label className="field">
+            <span>Niveau scolaire</span>
+            <select
+              value={schoolLevel}
+              onChange={(e) => setSchoolLevel(Number(e.target.value))}
+              style={{
+                width: '100%',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                border: '1px solid var(--border)',
+                backgroundColor: 'var(--bg-card)',
+                color: 'var(--text-main)',
+              }}
+            >
+              {[1, 2, 3, 4, 5, 6].map((level) => (
+                <option value={level} key={level}>
+                  {levelLabels[level][locale === "ar" ? "ar" : "fr"]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="btn btn--primary" disabled={isBusy} type="submit" style={{ marginTop: '12px' }}>
+            {isBusy ? (
+              <InlineLoader label="Saving..." />
+            ) : (
+              <>
+                <Plus className="w-4 h-4" />
+                {t.admin.addSubject}
+              </>
+            )}
           </button>
         </form>
 
         <div className="card">
-          <div className="card__head">
-            <h2>{t.admin.subjects}</h2>
-            <button className="btn btn--ghost" disabled={isBusy} onClick={() => loadSubjects()} type="button">
-              {t.admin.refresh}
-            </button>
+          <div className="card__head" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-blue-600" />
+                <h2>{t.admin.subjects}</h2>
+              </div>
+              <button className="btn btn--ghost" disabled={isBusy} onClick={() => loadSubjects()} type="button">
+                <RotateCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+                {t.admin.refresh}
+              </button>
+            </div>
+            
+            {/* Level Filter Bar */}
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', alignItems: 'center' }}>
+              <Filter className="w-4 h-4 text-slate-400 mr-1" />
+              <button
+                type="button"
+                className={`btn btn--sm ${filterLevel === "ALL" ? "btn--primary" : "btn--ghost"}`}
+                onClick={() => setFilterLevel("ALL")}
+              >
+                Tous les niveaux
+              </button>
+              {[1, 2, 3, 4, 5, 6].map((lvl) => (
+                <button
+                  key={lvl}
+                  type="button"
+                  className={`btn btn--sm ${filterLevel === lvl ? "btn--primary" : "btn--ghost"}`}
+                  onClick={() => setFilterLevel(lvl)}
+                >
+                  Niveau {lvl}
+                </button>
+              ))}
+            </div>
           </div>
+
           {isLoading ? (
             <p className="muted">{t.admin.loading}</p>
           ) : subjects.length === 0 ? (
             <p className="muted">{t.common.noSubjects}</p>
           ) : (
-            <div className="admin-list">
+            <div className="admin-list" style={{ marginTop: '16px' }}>
               {subjects.map((subject) => (
-                <div className="admin-row" key={subject.id}>
-                  <span>{subject.name}</span>
+                <div className="admin-row" key={subject.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <strong>{subject.name}</strong>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        background: 'rgba(59, 130, 246, 0.15)',
+                        color: 'var(--primary)',
+                        fontWeight: '600',
+                      }}
+                    >
+                      Niveau {subject.schoolLevel || 1}
+                    </span>
+                  </div>
                   <button className="btn btn--danger" onClick={() => deleteSubject(subject.id)} type="button">
+                    <Trash2 className="w-4 h-4" />
                     {t.admin.delete}
                   </button>
                 </div>
@@ -122,3 +217,4 @@ export default function AdminSubjectsPage() {
     </PageTransition>
   );
 }
+

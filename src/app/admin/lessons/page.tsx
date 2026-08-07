@@ -202,7 +202,7 @@ export default function AdminLessonsPage() {
                 <option value="">{t.admin.chooseSubject}</option>
                 {subjects.map((subject) => (
                   <option value={subject.id} key={subject.id}>
-                    {subject.name}
+                    {subject.name} (Niveau {subject.schoolLevel || 1})
                   </option>
                 ))}
               </select>
@@ -318,7 +318,21 @@ export default function AdminLessonsPage() {
             {lessonsBySubject.map(({ subject, lessons: subjectLessons }) => (
               <article className="card" key={subject.id}>
                 <div className="card__head">
-                  <h2>{subject.name}</h2>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <h2>{subject.name}</h2>
+                    <span
+                      style={{
+                        fontSize: '0.75rem',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        background: 'rgba(108, 92, 231, 0.15)',
+                        color: 'var(--primary)',
+                        fontWeight: '600',
+                      }}
+                    >
+                      Niveau {subject.schoolLevel || 1}
+                    </span>
+                  </div>
                   <button
                     className="btn btn--secondary"
                     onClick={() =>

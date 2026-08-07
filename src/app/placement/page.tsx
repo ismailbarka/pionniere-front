@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useLocale } from "@/lib/i18n";
@@ -9,12 +10,21 @@ import type { PlacementTest } from "@/lib/types";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { LoadingOverlay, InlineLoader } from "@/components/layout/LoadingOverlay";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { 
+  Target, 
+  PlayCircle, 
+  Send, 
+  CheckCircle2, 
+  Check, 
+  Sparkles,
+  HelpCircle
+} from "lucide-react";
 
 const TUTORIAL_VIDEO_ID = "ALzd8UkL9do";
 
 export default function PlacementPage() {
   const router = useRouter();
-  const { token, authHeaders, isBusy, setStatus, setMessage, setRequiresPlacementTest } = useAuth();
+  const { token, authHeaders, isBusy, setStatus, setMessage } = useAuth();
   const { t } = useLocale();
 
   const [placementTests, setPlacementTests] = useState<PlacementTest[]>([]);
@@ -69,7 +79,6 @@ export default function PlacementPage() {
         body: JSON.stringify({ submissions }),
       });
 
-      setRequiresPlacementTest(false);
       router.push("/subjects?placed=1");
     } catch (error) {
       setMessage(getErrorMessage(error));
@@ -87,9 +96,12 @@ export default function PlacementPage() {
           <section className="page-shell">
             <header className="page-header">
               <div>
-                <p className="eyebrow">{t.common.chooseSubject}</p>
+                <p className="eyebrow">
+                  <Target className="w-3.5 h-3.5" />
+                  {t.common.chooseSubject}
+                </p>
                 <h1>{t.placement.title}</h1>
-                <p className="page-header__lead">{t.placement.lead}</p>
+                <p className="page-header__lead">{t.placement.lead}tetet</p>
               </div>
 
               {totalQuestions > 0 && (
@@ -98,17 +110,20 @@ export default function PlacementPage() {
                     <span style={{ width: `${progressPct}%` }} />
                   </div>
                   <small>
-                    {answeredCount}/{totalQuestions} {t.common.questions}
+                    {answeredCount}/{totalQuestions} {t.common.questions} ({progressPct}%)
                   </small>
                 </div>
               )}
             </header>
 
-            {/* Video / how-it-works section, using placement translation keys (with fallback to home keys) */}
+            {/* Video / how-it-works section */}
             <div className="section-block" style={{ marginTop: 0, marginBottom: 40 }}>
               <div className="video-section">
                 <div className="video-section__copy">
-                  <p className="eyebrow">{t.placement.videoEyebrow || t.home.videoEyebrow}</p>
+                  <p className="eyebrow">
+                    <PlayCircle className="w-3.5 h-3.5" />
+                    {t.placement.videoEyebrow || t.home.videoEyebrow}
+                  </p>
                   <h2>{t.placement.videoTitle || t.home.videoTitle}</h2>
                   <p>{t.placement.videoLead || t.home.videoLead}</p>
                 </div>
@@ -127,7 +142,16 @@ export default function PlacementPage() {
             </div>
 
             {placementTests.length === 0 ? (
-              <div className="empty-state">{t.common.noPlacementTests}</div>
+              <div className="empty-state">
+                <Image 
+                  src="/empty-state.png" 
+                  alt="No placement tests" 
+                  width={140} 
+                  height={140} 
+                  className="mx-auto mb-2 opacity-90"
+                />
+                <p>{t.common.noPlacementTests}</p>
+              </div>
             ) : (
               <div className="stack">
                 {placementTests.map((test, testIndex) => {
@@ -139,8 +163,12 @@ export default function PlacementPage() {
                       style={{ animationDelay: `${testIndex * 80}ms` }}
                     >
                       <div className="card__head">
-                        <h2>{test.subject?.name || `Placement test ${test.id}`}</h2>
+                        <div className="flex items-center gap-2">
+                          <HelpCircle className="w-5 h-5 text-blue-600" />
+                          <h2>{test.subject?.name || `Placement test ${test.id}`}</h2>
+                        </div>
                         <span className="pill">
+                          <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />
                           {testAnswered}/{test.questions.length} {t.common.questions}
                         </span>
                       </div>
@@ -167,7 +195,8 @@ export default function PlacementPage() {
                                       }))
                                     }
                                   >
-                                    {option}
+                                    {selected && <Check className="w-4 h-4 text-blue-600 mr-2 flex-shrink-0" />}
+                                    <span>{option}</span>
                                   </button>
                                 );
                               })}
@@ -186,7 +215,14 @@ export default function PlacementPage() {
                     onClick={submitPlacement}
                     type="button"
                   >
-                    {isBusy ? <InlineLoader label={t.common.submitting} /> : t.placement.submitAssessment}
+                    {isBusy ? (
+                      <InlineLoader label={t.common.submitting} />
+                    ) : (
+                      <>
+                        <Send className="w-5 h-5" />
+                        {t.placement.submitAssessment}
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

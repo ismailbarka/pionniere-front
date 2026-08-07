@@ -143,7 +143,7 @@ export default function AdminPlacementPage() {
               <option value="">{t.admin.chooseSubject}</option>
               {subjects.map((subject) => (
                 <option value={subject.id} key={subject.id}>
-                  {subject.name}
+                  {subject.name} (Niveau {subject.schoolLevel || 1})
                 </option>
               ))}
             </select>
