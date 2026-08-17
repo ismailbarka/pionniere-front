@@ -2,12 +2,15 @@
 
 import { FormEvent, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useLocale } from "@/lib/i18n";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { PageTransition, FadeIn } from "@/components/layout/PageTransition";
 import { InlineLoader } from "@/components/layout/LoadingOverlay";
+import { Sparkles, User, GraduationCap, CheckCircle2 } from "lucide-react";
 
 function CompleteProfileForm() {
   const { completeProfile, isBusy, message } = useAuth();
+  const { t } = useLocale();
   const [username, setUsername] = useState("");
   const [schoolLevel, setSchoolLevel] = useState<number>(1);
 
@@ -23,9 +26,12 @@ function CompleteProfileForm() {
           <form className="auth-card" onSubmit={handleSubmit} style={{ maxWidth: '520px', margin: '0 auto', width: '100%' }}>
             <div className="auth-card__body">
               <div className="auth-card__intro">
-                <p className="auth-card__eyebrow">Étape finale</p>
-                <h2>Complétez votre profil</h2>
-                <p>Pour accéder à la plateforme, veuillez remplir les informations ci-dessous.</p>
+                <p className="auth-card__eyebrow">
+                  <Sparkles className="w-3.5 h-3.5 inline mr-1" />
+                  {t.profile.eyebrow}
+                </p>
+                <h2>{t.profile.title}</h2>
+                <p>{t.profile.lead}</p>
               </div>
 
               {message && (
@@ -35,19 +41,25 @@ function CompleteProfileForm() {
               )}
 
               <label className="field">
-                <span>Nom d'utilisateur</span>
+                <span className="flex items-center gap-1.5">
+                  <User className="w-4 h-4 text-blue-600" />
+                  {t.profile.usernameLabel}
+                </span>
                 <input
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="ex. mohamed_123"
+                  placeholder={t.profile.usernamePlaceholder}
                   required
                   minLength={3}
                 />
               </label>
 
               <label className="field">
-                <span>Niveau scolaire</span>
+                <span className="flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-blue-600" />
+                  {t.profile.schoolLevelLabel}
+                </span>
                 <select
                   value={schoolLevel}
                   onChange={(e) => setSchoolLevel(Number(e.target.value))}
@@ -64,12 +76,11 @@ function CompleteProfileForm() {
                     marginTop: '6px'
                   }}
                 >
-                  <option value={1}>1ère année (Niveau 1)</option>
-                  <option value={2}>2ème année (Niveau 2)</option>
-                  <option value={3}>3ème année (Niveau 3)</option>
-                  <option value={4}>4ème année (Niveau 4)</option>
-                  <option value={5}>5ème année (Niveau 5)</option>
-                  <option value={6}>6ème année (Niveau 6)</option>
+                  {[1, 2, 3, 4, 5, 6].map((level) => (
+                    <option value={level} key={level}>
+                      {t.levels[level]}
+                    </option>
+                  ))}
                 </select>
               </label>
 
@@ -79,7 +90,7 @@ function CompleteProfileForm() {
                 type="submit"
                 style={{ marginTop: '16px' }}
               >
-                {isBusy ? <InlineLoader label="Enregistrement..." /> : "Enregistrer et continuer"}
+                {isBusy ? <InlineLoader label={t.profile.saving} /> : t.profile.saveAndContinue}
               </button>
             </div>
           </form>

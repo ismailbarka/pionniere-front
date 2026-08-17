@@ -7,7 +7,6 @@ import { useLocale } from "@/lib/i18n";
 import { 
   Sparkles, 
   ArrowRight, 
-  BookOpen, 
   UserPlus, 
   LogIn, 
   CheckCircle2, 
@@ -19,7 +18,7 @@ import {
   Star
 } from "lucide-react";
 
-// Wraps any section in a fade/rise-in-on-scroll animation.
+// Wraps any section in a fade/rise-on-scroll animation.
 function Reveal({
   children,
   delay = 0,
@@ -80,7 +79,7 @@ export default function HomePage() {
               {t.home.eyebrow}
             </p>
             <h1>{t.home.title}</h1>
-            <p className="landing__lead">{t.home.lead}tetet</p>
+            <p className="landing__lead">{t.home.lead}</p>
 
             <div className="landing__actions">
               <Link href="/signup" className="btn btn--primary btn--lg">
@@ -92,7 +91,6 @@ export default function HomePage() {
                 {t.home.signIn}
               </Link>
               <Link href="/subjects" className="btn btn--ghost btn--lg">
-                {/* <BookOpen className="w-5 h-5" /> */}
                 {t.home.browseSubjects}
                 <ArrowRight className="w-4 h-4 ml-1" />
               </Link>
@@ -118,7 +116,7 @@ export default function HomePage() {
             <div className="relative w-full aspect-square max-w-[360px] mx-auto mb-6 drop-shadow-xl hover:scale-105 transition-transform duration-300">
               <Image
                 src="/hero-illustration.png"
-                alt="Illustration Daam Education"
+                alt="Daam Éducation - Plateforme d'apprentissage primaire"
                 width={360}
                 height={360}
                 className="object-contain"
@@ -254,4 +252,3 @@ export default function HomePage() {
     </main>
   );
 }
-

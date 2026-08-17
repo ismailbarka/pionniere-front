@@ -114,7 +114,7 @@ export function AppHeader() {
                 className="user-avatar-btn"
                 onClick={() => setProfileOpen(!profileOpen)}
                 aria-expanded={profileOpen}
-                aria-label="User menu"
+                aria-label={t.nav.userMenu}
               >
                 <span className="user-avatar">{avatarLetter}</span>
               </button>
@@ -135,15 +135,15 @@ export function AppHeader() {
 
                   <div className="user-dropdown__divider" />
 
-                  {/* Settings — placeholder for later */}
+                  {/* Settings */}
                   <button
                     type="button"
                     className="user-dropdown__item user-dropdown__item--disabled"
                     disabled
-                    title="Bientôt disponible"
+                    title={t.nav.comingSoon}
                   >
                     <Settings className="w-4 h-4" />
-                    <span>Paramètres</span>
+                    <span>{t.nav.settings}</span>
                   </button>
 
                   <div className="user-dropdown__divider" />
@@ -160,30 +160,34 @@ export function AppHeader() {
                 </div>
               )}
             </div>
-          ) : isAuthPage ? (
-            <Link
-              href={pathname === "/login" ? "/signup" : "/login"}
-              className="btn btn--primary"
-            >
-              {pathname === "/login" ? t.nav.getStarted : t.nav.signIn}
-            </Link>
           ) : (
-            <>
-              <Link href="/login" className="btn btn--ghost">
-                {t.nav.signIn}
-              </Link>
-              <Link href="/signup" className="btn btn--primary">
-                {t.nav.getStarted}
-              </Link>
-            </>
+            <div className="site-header__auth-group">
+              {isAuthPage ? (
+                <Link
+                  href={pathname === "/login" ? "/signup" : "/login"}
+                  className="btn btn--primary"
+                >
+                  {pathname === "/login" ? t.nav.getStarted : t.nav.signIn}
+                </Link>
+              ) : (
+                <>
+                  <Link href="/login" className="btn btn--ghost">
+                    {t.nav.signIn}
+                  </Link>
+                  <Link href="/signup" className="btn btn--primary">
+                    {t.nav.getStarted}
+                  </Link>
+                </>
+              )}
+            </div>
           )}
 
           {/* Mobile hamburger */}
           <button
             type="button"
-            className="menu-toggle"
+            className={`menu-toggle ${menuOpen ? "is-active" : ""}`}
             aria-expanded={menuOpen}
-            aria-label="Toggle navigation"
+            aria-label={t.nav.toggleMenu}
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? (
@@ -202,76 +206,107 @@ export function AppHeader() {
         </div>
       </div>
 
-      {/* Mobile Nav Drawer */}
+      {/* Mobile Nav Drawer & Backdrop */}
       {menuOpen && (
-        <div className="mobile-drawer">
-          {user && !isAuthPage ? (
-            <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }} aria-label="Mobile Main">
-              {links.map((link) => (
+        <>
+          <div
+            className="mobile-drawer-backdrop"
+            onClick={() => setMenuOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="mobile-drawer">
+            {user && !isAuthPage ? (
+              <nav className="mobile-drawer__nav" aria-label="Mobile Main">
+                {links.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`mobile-drawer__link ${pathname.startsWith(link.href) ? "is-active" : ""}`}
+                  >
+                    {t.nav[link.key]}
+                  </Link>
+                ))}
+              </nav>
+            ) : isPublicPage ? (
+              <nav className="mobile-drawer__nav" aria-label="Mobile Public">
                 <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`mobile-drawer__link ${pathname.startsWith(link.href) ? "is-active" : ""}`}
+                  href="/"
+                  onClick={() => setMenuOpen(false)}
+                  className={`mobile-drawer__link ${pathname === "/" ? "is-active" : ""}`}
                 >
-                  {t.nav[link.key]}
-                </Link>
-              ))}
-            </nav>
-          ) : isPublicPage ? (
-            <nav style={{ display: "flex", flexDirection: "column", gap: "8px" }} aria-label="Mobile Public">
-              <Link href="/" className={`mobile-drawer__link ${pathname === "/" ? "is-active" : ""}`}>
-                {t.nav.home}
-              </Link>
-            </nav>
-          ) : null}
-
-          <div className="mobile-drawer__footer">
-            <div className="locale-switcher" style={{ width: "100%", justifyContent: "center" }} aria-label={t.switchLabel}>
-              <LocaleButton active={locale === "fr"} locale="fr" onClick={() => setLocale("fr")} />
-              <LocaleButton active={locale === "ar"} locale="ar" onClick={() => setLocale("ar")} />
-            </div>
-
-            {user ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px", border: "1px solid var(--border)", borderRadius: "var(--radius-md)" }}>
-                  <span className="user-avatar">{avatarLetter}</span>
-                  <span style={{ fontWeight: 600, fontSize: "0.9rem" }}>{displayName}</span>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn--ghost"
-                  style={{ width: "100%", justifyContent: "center" }}
-                  onClick={logout}
-                >
-                  <LogOut className="w-4 h-4" />
-                  {t.nav.signOut}
-                </button>
-              </div>
-            ) : isAuthPage ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <Link href="/" className="btn btn--ghost" style={{ width: "100%", justifyContent: "center" }}>
                   {t.nav.home}
                 </Link>
-                <Link
-                  href={pathname === "/login" ? "/signup" : "/login"}
-                  className="btn btn--primary"
-                  style={{ width: "100%", justifyContent: "center" }}
-                >
-                  {pathname === "/login" ? t.nav.getStarted : t.nav.signIn}
-                </Link>
+              </nav>
+            ) : null}
+
+            <div className="mobile-drawer__footer">
+              <div className="locale-switcher locale-switcher--mobile" aria-label={t.switchLabel}>
+                <LocaleButton active={locale === "fr"} locale="fr" onClick={() => setLocale("fr")} />
+                <LocaleButton active={locale === "ar"} locale="ar" onClick={() => setLocale("ar")} />
               </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                <Link href="/login" className="btn btn--ghost" style={{ width: "100%", justifyContent: "center" }}>
-                  {t.nav.signIn}
-                </Link>
-                <Link href="/signup" className="btn btn--primary" style={{ width: "100%", justifyContent: "center" }}>
-                  {t.nav.getStarted}
-                </Link>
-              </div>
-            )}
+
+              {user ? (
+                <div className="mobile-drawer__user">
+                  <div className="mobile-drawer__user-card">
+                    <span className="user-avatar">{avatarLetter}</span>
+                    <div className="mobile-drawer__user-info">
+                      <span className="mobile-drawer__user-name">{displayName}</span>
+                      <span className="mobile-drawer__user-role">
+                        {user.role === "ADMIN" ? t.role.admin : t.role.student}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn--ghost mobile-drawer__btn"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      logout();
+                    }}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>{t.nav.signOut}</span>
+                  </button>
+                </div>
+              ) : isAuthPage ? (
+                <div className="mobile-drawer__auth">
+                  <Link
+                    href="/"
+                    onClick={() => setMenuOpen(false)}
+                    className="btn btn--ghost mobile-drawer__btn"
+                  >
+                    {t.nav.home}
+                  </Link>
+                  <Link
+                    href={pathname === "/login" ? "/signup" : "/login"}
+                    onClick={() => setMenuOpen(false)}
+                    className="btn btn--primary mobile-drawer__btn"
+                  >
+                    {pathname === "/login" ? t.nav.getStarted : t.nav.signIn}
+                  </Link>
+                </div>
+              ) : (
+                <div className="mobile-drawer__auth">
+                  <Link
+                    href="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="btn btn--ghost mobile-drawer__btn"
+                  >
+                    {t.nav.signIn}
+                  </Link>
+                  <Link
+                    href="/signup"
+                    onClick={() => setMenuOpen(false)}
+                    className="btn btn--primary mobile-drawer__btn"
+                  >
+                    {t.nav.getStarted}
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </header>
   );

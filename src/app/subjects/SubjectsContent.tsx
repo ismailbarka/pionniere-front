@@ -14,7 +14,6 @@ import { FadeIn, PageTransition } from "@/components/layout/PageTransition";
 import { 
   BookOpen, 
   GraduationCap, 
-  Sparkles, 
   CheckCircle2, 
   ArrowRight, 
   BookMarked,
@@ -79,7 +78,7 @@ export default function SubjectsContent() {
                   <h1>{t.subjects.title}</h1>
                   <p className="page-header__lead">{t.subjects.lead}</p>
                 </div>
-                {user?.schoolLevel && (
+                {user?.schoolLevel ? (
                   <span
                     style={{
                       display: 'inline-flex',
@@ -95,9 +94,9 @@ export default function SubjectsContent() {
                     }}
                   >
                     <GraduationCap className="w-4 h-4 text-blue-600" />
-                    {locale === "ar" ? `السنة ${user.schoolLevel} من التعليم` : `${user.schoolLevel}ème année d'études`}
+                    {t.levels[user.schoolLevel] || t.common.levelBadge(user.schoolLevel)}
                   </span>
-                )}
+                ) : null}
               </div>
             </header>
 
@@ -112,7 +111,7 @@ export default function SubjectsContent() {
               <div className="empty-state">
                 <Image 
                   src="/empty-state.png" 
-                  alt="No subjects" 
+                  alt={t.common.noSubjects}
                   width={140} 
                   height={140} 
                   className="mx-auto mb-2 opacity-90"

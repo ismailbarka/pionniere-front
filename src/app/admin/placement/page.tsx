@@ -8,6 +8,7 @@ import { getErrorMessage } from "@/lib/api";
 import type { PlacementDraftQuestion, PlacementTest, Subject } from "@/lib/types";
 import { InlineLoader } from "@/components/layout/LoadingOverlay";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { Plus, Trash2, RotateCw, Target } from "lucide-react";
 
 const emptyPlacementQuestion: PlacementDraftQuestion = {
   text: "",
@@ -17,7 +18,7 @@ const emptyPlacementQuestion: PlacementDraftQuestion = {
 
 export default function AdminPlacementPage() {
   const { authHeaders, isBusy, setStatus, setMessage } = useAuth();
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [placementTests, setPlacementTests] = useState<PlacementTest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +67,7 @@ export default function AdminPlacementPage() {
     setMessage("");
 
     try {
-      if (!placementForm.subjectId) throw new Error("Choose a subject");
+      if (!placementForm.subjectId) throw new Error(t.admin.errorChooseSubject);
 
       const questions = placementForm.questions.map((question) => {
         const options = question.optionsText
@@ -75,7 +76,7 @@ export default function AdminPlacementPage() {
           .filter(Boolean);
 
         if (!question.text || options.length < 2 || !question.correctAnswer) {
-          throw new Error("Each placement question needs text, at least two options, and a correct answer");
+          throw new Error(t.admin.errorPlacementValidation);
         }
 
         return {
@@ -101,7 +102,7 @@ export default function AdminPlacementPage() {
         questions: [{ ...emptyPlacementQuestion }],
       });
       await loadData();
-      setMessage(locale === "ar" ? "تم إنشاء اختبار التحديد" : "Test de placement créé");
+      setMessage(t.admin.placementTestCreated);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -121,7 +122,7 @@ export default function AdminPlacementPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.message || "Request failed");
       await loadData();
-      setMessage(locale === "ar" ? "تم حذف اختبار التحديد" : "Test de placement supprimé");
+      setMessage(t.admin.placementTestDeleted);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -133,17 +134,21 @@ export default function AdminPlacementPage() {
     <PageTransition>
       <div className="admin-grid">
         <form className="card admin-form" onSubmit={createPlacementTest}>
-          <h2>{t.admin.addPlacementTest}</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <Target className="w-5 h-5 text-blue-600" />
+            <h2>{t.admin.addPlacementTest}</h2>
+          </div>
           <label className="field">
             <span>{t.admin.chooseSubject}</span>
             <select
               value={placementForm.subjectId}
               onChange={(event) => setPlacementForm((current) => ({ ...current, subjectId: event.target.value }))}
+              required
             >
               <option value="">{t.admin.chooseSubject}</option>
               {subjects.map((subject) => (
                 <option value={subject.id} key={subject.id}>
-                  {subject.name} (Niveau {subject.schoolLevel || 1})
+                  {subject.name} ({t.common.levelBadge(subject.schoolLevel || 1)})
                 </option>
               ))}
             </select>
@@ -156,6 +161,7 @@ export default function AdminPlacementPage() {
                 <input
                   value={question.text}
                   onChange={(event) => setPlacementQuestion(index, "text", event.target.value)}
+                  required
                 />
               </label>
               <label className="field">
@@ -163,6 +169,8 @@ export default function AdminPlacementPage() {
                 <input
                   value={question.optionsText}
                   onChange={(event) => setPlacementQuestion(index, "optionsText", event.target.value)}
+                  placeholder="Option 1, Option 2, Option 3, Option 4"
+                  required
                 />
               </label>
               <label className="field">
@@ -170,6 +178,8 @@ export default function AdminPlacementPage() {
                 <input
                   value={question.correctAnswer}
                   onChange={(event) => setPlacementQuestion(index, "correctAnswer", event.target.value)}
+                  placeholder="ex. Option 1"
+                  required
                 />
               </label>
             </div>
@@ -186,18 +196,23 @@ export default function AdminPlacementPage() {
                 }))
               }
             >
+              <Plus className="w-4 h-4" />
               {t.admin.addAnotherQuestion}
             </button>
             <button className="btn btn--primary" disabled={isBusy} type="submit">
-              {isBusy ? <InlineLoader label="Saving..." /> : t.admin.createPlacementTest}
+              {isBusy ? <InlineLoader label={t.common.saving} /> : t.admin.createPlacementTest}
             </button>
           </div>
         </form>
 
         <div className="card">
           <div className="card__head">
-            <h2>{t.admin.tests}</h2>
+            <div className="flex items-center gap-2">
+              <Target className="w-5 h-5 text-blue-600" />
+              <h2>{t.admin.tests}</h2>
+            </div>
             <button className="btn btn--ghost" disabled={isBusy} onClick={() => loadData()} type="button">
+              <RotateCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
               {t.admin.refresh}
             </button>
           </div>
@@ -210,12 +225,13 @@ export default function AdminPlacementPage() {
               {placementTests.map((test) => (
                 <div className="admin-row admin-row--stacked" key={test.id}>
                   <span>
-                    <strong>{test.subject?.name || `Subject ${test.subjectId}`}</strong>
+                    <strong>{test.subject?.name || `${t.admin.placement} #${test.id}`}</strong>
                     <small>
                       {test.questions.length} {t.common.questions}
                     </small>
                   </span>
                   <button className="btn btn--danger" onClick={() => deletePlacementTest(test.id)} type="button">
+                    <Trash2 className="w-4 h-4" />
                     {t.admin.delete}
                   </button>
                 </div>

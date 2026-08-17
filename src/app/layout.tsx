@@ -16,9 +16,23 @@ const display = Amiri({
 });
 
 export const metadata: Metadata = {
-  title: "Daam | Plateforme d’apprentissage guidée",
+  title: "Daam | Soutien scolaire & Réussite au primaire au Maroc",
   description:
-    "Une plateforme éducative soignée avec tests de placement, parcours de leçons structurés, quiz et outils d’administration.",
+    "Plateforme éducative d'apprentissage et de soutien scolaire pour l'école primaire au Maroc. Leçons vidéo conformes au programme officiel, quiz interactifs et suivi de progression.",
+  keywords: [
+    "soutien scolaire Maroc",
+    "primaire Maroc",
+    "leçons primaire",
+    "quiz éducatifs",
+    "Daam éducation",
+    "cours en ligne primaire",
+  ],
+  openGraph: {
+    title: "Daam | Soutien scolaire & Réussite au primaire",
+    description:
+      "Leçons vidéo conformes au programme marocain, quiz d'entraînement interactifs et suivi de progression pour l'école primaire.",
+    type: "website",
+  },
 };
 
 export default function RootLayout({

@@ -14,21 +14,11 @@ import {
   RotateCw, 
   Filter, 
   BookOpen, 
-  GraduationCap 
 } from "lucide-react";
-
-const levelLabels: Record<number, { fr: string; ar: string }> = {
-  1: { fr: "1ère année (Niveau 1)", ar: "السنة 1 (المستوى 1)" },
-  2: { fr: "2ème année (Niveau 2)", ar: "السنة 2 (المستوى 2)" },
-  3: { fr: "3ème année (Niveau 3)", ar: "السنة 3 (المستوى 3)" },
-  4: { fr: "4ème année (Niveau 4)", ar: "السنة 4 (المستوى 4)" },
-  5: { fr: "5ème année (Niveau 5)", ar: "السنة 5 (المستوى 5)" },
-  6: { fr: "6ème année (Niveau 6)", ar: "السنة 6 (المستوى 6)" },
-};
 
 export default function AdminSubjectsPage() {
   const { authHeaders, isBusy, setStatus, setMessage } = useAuth();
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectName, setSubjectName] = useState("");
   const [schoolLevel, setSchoolLevel] = useState<number>(1);
@@ -72,7 +62,7 @@ export default function AdminSubjectsPage() {
       if (!response.ok) throw new Error(data?.message || "Request failed");
       setSubjectName("");
       await loadSubjects();
-      setMessage(locale === "ar" ? "تم إنشاء المادة" : "Matière créée");
+      setMessage(t.admin.subjectCreated);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -92,7 +82,7 @@ export default function AdminSubjectsPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.message || "Request failed");
       await loadSubjects();
-      setMessage(locale === "ar" ? "تم حذف المادة" : "Matière supprimée");
+      setMessage(t.admin.subjectDeleted);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -110,10 +100,15 @@ export default function AdminSubjectsPage() {
           </div>
           <label className="field">
             <span>{t.admin.subjectName}</span>
-            <input value={subjectName} onChange={(event) => setSubjectName(event.target.value)} placeholder="ex. Mathématiques" required />
+            <input 
+              value={subjectName} 
+              onChange={(event) => setSubjectName(event.target.value)} 
+              placeholder={t.admin.subjectNamePlaceholder} 
+              required 
+            />
           </label>
           <label className="field">
-            <span>Niveau scolaire</span>
+            <span>{t.admin.schoolLevel}</span>
             <select
               value={schoolLevel}
               onChange={(e) => setSchoolLevel(Number(e.target.value))}
@@ -128,14 +123,14 @@ export default function AdminSubjectsPage() {
             >
               {[1, 2, 3, 4, 5, 6].map((level) => (
                 <option value={level} key={level}>
-                  {levelLabels[level][locale === "ar" ? "ar" : "fr"]}
+                  {t.levels[level]}
                 </option>
               ))}
             </select>
           </label>
           <button className="btn btn--primary" disabled={isBusy} type="submit" style={{ marginTop: '12px' }}>
             {isBusy ? (
-              <InlineLoader label="Saving..." />
+              <InlineLoader label={t.common.saving} />
             ) : (
               <>
                 <Plus className="w-4 h-4" />
@@ -166,7 +161,7 @@ export default function AdminSubjectsPage() {
                 className={`btn btn--sm ${filterLevel === "ALL" ? "btn--primary" : "btn--ghost"}`}
                 onClick={() => setFilterLevel("ALL")}
               >
-                Tous les niveaux
+                {t.admin.allLevels}
               </button>
               {[1, 2, 3, 4, 5, 6].map((lvl) => (
                 <button
@@ -175,7 +170,7 @@ export default function AdminSubjectsPage() {
                   className={`btn btn--sm ${filterLevel === lvl ? "btn--primary" : "btn--ghost"}`}
                   onClick={() => setFilterLevel(lvl)}
                 >
-                  Niveau {lvl}
+                  {t.admin.levelFilter(lvl)}
                 </button>
               ))}
             </div>
@@ -201,7 +196,7 @@ export default function AdminSubjectsPage() {
                         fontWeight: '600',
                       }}
                     >
-                      Niveau {subject.schoolLevel || 1}
+                      {t.common.levelBadge(subject.schoolLevel || 1)}
                     </span>
                   </div>
                   <button className="btn btn--danger" onClick={() => deleteSubject(subject.id)} type="button">
@@ -217,4 +212,3 @@ export default function AdminSubjectsPage() {
     </PageTransition>
   );
 }
-

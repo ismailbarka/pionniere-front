@@ -6,8 +6,7 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
 import { useLocale } from "@/lib/i18n";
-import { API_URL } from "@/lib/api";
-import { getErrorMessage } from "@/lib/api";
+import { API_URL, getErrorMessage } from "@/lib/api";
 import type { Lesson, QuizResult, Subject } from "@/lib/types";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { LoadingOverlay } from "@/components/layout/LoadingOverlay";
@@ -21,8 +20,6 @@ import {
   Lock, 
   PlayCircle, 
   Sparkles, 
-  Award, 
-  Zap, 
   ChevronLeft, 
   ChevronRight,
   Play
@@ -131,7 +128,7 @@ export default function LessonDetailPage() {
       }));
 
       if (answers.some((answer) => !answer.answer)) {
-        throw new Error("Please answer every quiz question");
+        throw new Error(t.quiz.answerAllPrompt);
       }
 
       const response = await fetch(
@@ -182,7 +179,7 @@ export default function LessonDetailPage() {
             <div>
               <p className="eyebrow">
                 <BookOpen className="w-3.5 h-3.5" />
-                {subject?.name || "Subject"}
+                {subject?.name || t.nav.subjects}
               </p>
               <h1>{lesson?.title || t.lessonDetail.title}</h1>
               <p className="page-header__lead">{t.lessonDetail.lead}</p>
@@ -206,7 +203,7 @@ export default function LessonDetailPage() {
             <div className="empty-state">
               <Image 
                 src="/empty-state.png" 
-                alt="Lesson not found" 
+                alt={t.common.lessonNotFound} 
                 width={140} 
                 height={140} 
                 className="mx-auto mb-2 opacity-90"
@@ -329,4 +326,3 @@ export default function LessonDetailPage() {
     </RequireAuth>
   );
 }
-

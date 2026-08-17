@@ -16,7 +16,6 @@ import {
   Send, 
   CheckCircle2, 
   Check, 
-  Sparkles,
   HelpCircle
 } from "lucide-react";
 
@@ -71,7 +70,7 @@ export default function PlacementPage() {
       const missingAnswer = submissions.some((submission) =>
         submission.answers.some((answer) => !answer.answer),
       );
-      if (missingAnswer) throw new Error(t.common.answerEveryQuestion || "Please answer every placement question");
+      if (missingAnswer) throw new Error(t.common.answerEveryQuestion);
 
       await request("/placement-tests/submit-all", {
         method: "POST",
@@ -98,19 +97,19 @@ export default function PlacementPage() {
               <div>
                 <p className="eyebrow">
                   <Target className="w-3.5 h-3.5" />
-                  {t.common.chooseSubject}
+                  {t.placement.eyebrow}
                 </p>
                 <h1>{t.placement.title}</h1>
-                <p className="page-header__lead">{t.placement.lead}tetet</p>
+                <p className="page-header__lead">{t.placement.lead}</p>
               </div>
 
               {totalQuestions > 0 && (
-                <div className="quiz-progress" style={{ minWidth: 200 }}>
+                <div className="quiz-progress" style={{ minWidth: 220 }}>
                   <div className="quiz-progress__bar">
                     <span style={{ width: `${progressPct}%` }} />
                   </div>
                   <small>
-                    {answeredCount}/{totalQuestions} {t.common.questions} ({progressPct}%)
+                    {t.placement.progressText(answeredCount, totalQuestions, progressPct)}
                   </small>
                 </div>
               )}
@@ -122,16 +121,16 @@ export default function PlacementPage() {
                 <div className="video-section__copy">
                   <p className="eyebrow">
                     <PlayCircle className="w-3.5 h-3.5" />
-                    {t.placement.videoEyebrow || t.home.videoEyebrow}
+                    {t.placement.videoEyebrow}
                   </p>
-                  <h2>{t.placement.videoTitle || t.home.videoTitle}</h2>
-                  <p>{t.placement.videoLead || t.home.videoLead}</p>
+                  <h2>{t.placement.videoTitle}</h2>
+                  <p>{t.placement.videoLead}</p>
                 </div>
                 <div className="video-section__media">
                   <div className="video-embed">
                     <iframe
                       src={`https://www.youtube.com/embed/${TUTORIAL_VIDEO_ID}`}
-                      title={t.placement.videoTitle || t.home.videoTitle || "Placement test guide"}
+                      title={t.placement.videoTitle}
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                       loading="lazy"
@@ -145,7 +144,7 @@ export default function PlacementPage() {
               <div className="empty-state">
                 <Image 
                   src="/empty-state.png" 
-                  alt="No placement tests" 
+                  alt={t.common.noPlacementTests}
                   width={140} 
                   height={140} 
                   className="mx-auto mb-2 opacity-90"
@@ -165,7 +164,7 @@ export default function PlacementPage() {
                       <div className="card__head">
                         <div className="flex items-center gap-2">
                           <HelpCircle className="w-5 h-5 text-blue-600" />
-                          <h2>{test.subject?.name || `Placement test ${test.id}`}</h2>
+                          <h2>{test.subject?.name || `${t.placement.title} - ${test.id}`}</h2>
                         </div>
                         <span className="pill">
                           <CheckCircle2 className="w-3.5 h-3.5 mr-1 text-emerald-600" />

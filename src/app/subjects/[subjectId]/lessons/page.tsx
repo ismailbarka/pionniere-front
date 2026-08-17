@@ -79,7 +79,7 @@ export default function SubjectLessonsIndexPage() {
   return (
     <RequireAuth role="STUDENT">
       {isLoading ? (
-        <LoadingOverlay label={t.common.loadingLesson} />
+        <LoadingOverlay label={t.common.loadingLessons} />
       ) : (
         <PageTransition>
           <section className="page-shell">
@@ -94,7 +94,7 @@ export default function SubjectLessonsIndexPage() {
               <div>
                 <p className="eyebrow">
                   <BookOpen className="w-3.5 h-3.5" />
-                  {subject?.name || "Subject"}
+                  {subject?.name || t.nav.subjects}
                 </p>
                 <h1>{t.lessonIndex.title}</h1>
                 <p className="page-header__lead">{t.lessonIndex.lead}</p>
@@ -121,7 +121,7 @@ export default function SubjectLessonsIndexPage() {
               <div className="empty-state">
                 <Image 
                   src="/empty-state.png" 
-                  alt="No lessons" 
+                  alt={t.common.noLessons} 
                   width={140} 
                   height={140} 
                   className="mx-auto mb-2 opacity-90"
@@ -181,4 +181,3 @@ export default function SubjectLessonsIndexPage() {
     </RequireAuth>
   );
 }
-

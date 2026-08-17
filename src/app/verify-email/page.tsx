@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useLocale } from "@/lib/i18n";
 import { request, getErrorMessage } from "@/lib/api";
 import { LoadingOverlay } from "@/components/layout/LoadingOverlay";
 import { PageTransition, FadeIn } from "@/components/layout/PageTransition";
+import { CheckCircle2, XCircle, ArrowRight } from "lucide-react";
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const token = searchParams.get("token");
+  const { t } = useLocale();
 
   const [loading, setLoading] = useState(true);
   const [success, setSuccess] = useState(false);
@@ -20,7 +22,7 @@ function VerifyEmailContent() {
     if (!token) {
       setLoading(false);
       setSuccess(false);
-      setMessage("Jeton de vérification manquant.");
+      setMessage(t.verifyEmail.missingToken);
       return;
     }
 
@@ -28,7 +30,7 @@ function VerifyEmailContent() {
       try {
         const res = await request<{ message: string }>(`/auth/verify-email?token=${encodeURIComponent(token)}`);
         setSuccess(true);
-        setMessage(res.message);
+        setMessage(res.message || t.verifyEmail.successTitle);
       } catch (err) {
         setSuccess(false);
         setMessage(getErrorMessage(err));
@@ -36,10 +38,10 @@ function VerifyEmailContent() {
         setLoading(false);
       }
     })();
-  }, [token]);
+  }, [token, t]);
 
   if (loading) {
-    return <LoadingOverlay label="Vérification de votre adresse email en cours..." />;
+    return <LoadingOverlay label={t.verifyEmail.loading} />;
   }
 
   return (
@@ -48,18 +50,23 @@ function VerifyEmailContent() {
         <FadeIn>
           <div className="auth-card" style={{ maxWidth: '480px', margin: '0 auto', width: '100%' }}>
             <div className="auth-card__body" style={{ textAlign: 'center', padding: '40px 24px' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>
-                {success ? "✅" : "❌"}
+              <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>
+                {success ? (
+                  <CheckCircle2 className="w-16 h-16 text-emerald-600 animate-bounce" />
+                ) : (
+                  <XCircle className="w-16 h-16 text-rose-600" />
+                )}
               </div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', marginBottom: '12px' }}>
-                {success ? "Email vérifié !" : "Échec de la vérification"}
+                {success ? t.verifyEmail.successTitle : t.verifyEmail.errorTitle}
               </h2>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}>
+              <p style={{ color: 'var(--text-muted)', marginBottom: '24px', lineHeight: 1.6 }}>
                 {message}
               </p>
               <div>
                 <Link href="/login" className="btn btn--primary btn--block">
-                  Aller à la page de connexion
+                  {t.verifyEmail.goToLogin}
+                  <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
             </div>
@@ -71,8 +78,10 @@ function VerifyEmailContent() {
 }
 
 export default function VerifyEmailPage() {
+  const { t } = useLocale();
+
   return (
-    <Suspense fallback={<LoadingOverlay label="Chargement..." />}>
+    <Suspense fallback={<LoadingOverlay label={t.common.loading} />}>
       <VerifyEmailContent />
     </Suspense>
   );

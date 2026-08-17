@@ -3,20 +3,21 @@
 import { useLocale } from "@/lib/i18n";
 
 const labelMap: Record<string, { fr: string; ar: string }> = {
-  "Checking session": { fr: "Vérification de la session", ar: "جارٍ التحقق من الجلسة" },
-  "Redirecting": { fr: "Redirection", ar: "جارٍ التحويل" },
-  "Restoring your session": { fr: "Restauration de la session", ar: "جارٍ استعادة الجلسة" },
-  "Opening your dashboard": { fr: "Ouverture du tableau de bord", ar: "جارٍ فتح لوحة التحكم" },
-  "Loading your subjects": { fr: "Chargement de vos matières", ar: "جارٍ تحميل موادك" },
-  "Loading lesson list": { fr: "Chargement de la liste des leçons", ar: "جارٍ تحميل قائمة الدروس" },
-  "Loading lesson": { fr: "Chargement de la leçon", ar: "جارٍ تحميل الدرس" },
-  "Loading lessons": { fr: "Chargement des leçons", ar: "جارٍ تحميل الدروس" },
-  "Loading placement test": { fr: "Chargement du Test de placement", ar: "جارٍ تحميل اختبار التحديد" },
-  "Loading placement tests": { fr: "Chargement des tests de placement", ar: "جارٍ تحميل اختبارات التحديد" },
-  "Preparing your classroom": { fr: "Préparation de votre espace", ar: "جارٍ تجهيز مساحتك" },
-  "Submitting...": { fr: "Envoi…", ar: "جارٍ الإرسال…" },
-  "Saving...": { fr: "Enregistrement…", ar: "جارٍ الحفظ…" },
-  "Submitting": { fr: "Envoi…", ar: "جارٍ الإرسال…" },
+  "Checking session": { fr: "Vérification de votre compte…", ar: "جارٍ التحقق من الحساب…" },
+  "Redirecting": { fr: "Redirection vers votre espace…", ar: "جارٍ توجيهك إلى فضائك…" },
+  "Restoring your session": { fr: "Restauration de votre session…", ar: "جارٍ استعادة الجلسة…" },
+  "Opening your dashboard": { fr: "Ouverture de votre tableau de bord…", ar: "جارٍ فتح لوحة التحكم…" },
+  "Loading your subjects": { fr: "Chargement de vos matières…", ar: "جارٍ تحميل المواد الدراسية…" },
+  "Loading lesson list": { fr: "Chargement de la liste des leçons…", ar: "جارٍ تحميل قائمة الدروس…" },
+  "Loading lesson": { fr: "Chargement de la leçon…", ar: "جارٍ تحميل الدرس…" },
+  "Loading lessons": { fr: "Chargement des leçons…", ar: "جارٍ تحميل الدروس…" },
+  "Loading placement test": { fr: "Chargement du test de niveau…", ar: "جارٍ تحميل اختبار المستوى…" },
+  "Loading placement tests": { fr: "Chargement des tests de niveau…", ar: "جارٍ تحميل اختبارات المستوى…" },
+  "Preparing your classroom": { fr: "Préparation de votre espace d'apprentissage…", ar: "جارٍ تجهيز فضائك التعليمي…" },
+  "Submitting...": { fr: "Validation en cours…", ar: "جارٍ التحقق والتأكيد…" },
+  "Saving...": { fr: "Enregistrement en cours…", ar: "جارٍ الحفظ…" },
+  "Submitting": { fr: "Validation en cours…", ar: "جارٍ التحقق والتأكيد…" },
+  "Working...": { fr: "Traitement en cours…", ar: "جارٍ المعالجة…" },
 };
 
 function localize(label: string, locale: "fr" | "ar") {

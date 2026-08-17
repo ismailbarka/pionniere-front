@@ -6,12 +6,10 @@ import { useAuth } from "@/lib/auth-context";
 import type { AuthMode } from "@/lib/types";
 import { useLocale } from "@/lib/i18n";
 import { FadeIn, PageTransition } from "@/components/layout/PageTransition";
-import { InlineLoader } from "@/components/layout/LoadingOverlay";
 import { 
   CheckCircle2, 
   AlertCircle, 
   Sparkles, 
-  ShieldCheck 
 } from "lucide-react";
 
 declare global {
@@ -34,9 +32,9 @@ type AuthFormProps = {
   backHref?: string;
 };
 
-export function AuthForm({ initialMode = "login", switchHref, backHref = "/" }: AuthFormProps) {
-  const { login, register, googleLogin, resendVerification, isBusy, message } = useAuth();
-  const { locale, t } = useLocale();
+export function AuthForm({ initialMode = "login", switchHref }: AuthFormProps) {
+  const { login, register, googleLogin, resendVerification, message } = useAuth();
+  const { t } = useLocale();
   const [authMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -119,7 +117,7 @@ export function AuthForm({ initialMode = "login", switchHref, backHref = "/" }: 
               </div>
             </div>
             <ul className="auth-hero__features">
-              {(isLogin ? t.home.betterItems : t.home.betterItems).map((feature) => (
+              {t.home.betterItems.map((feature) => (
                 <li key={feature} className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
                   <span>{feature}</span>
@@ -158,7 +156,7 @@ export function AuthForm({ initialMode = "login", switchHref, backHref = "/" }: 
                       onClick={() => void resendVerification(email)}
                       style={{ marginTop: '8px', fontSize: '0.85rem' }}
                     >
-                      Renvoyer l'email de vérification
+                      {t.auth.resendVerification}
                     </button>
                   )}
                 </div>
@@ -185,4 +183,3 @@ export function AuthForm({ initialMode = "login", switchHref, backHref = "/" }: 
     </PageTransition>
   );
 }
-

@@ -8,10 +8,11 @@ import { cleanPayload, getErrorMessage } from "@/lib/api";
 import type { AnswerOption, Lesson, QuizQuestion, Subject } from "@/lib/types";
 import { InlineLoader } from "@/components/layout/LoadingOverlay";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { Plus, Trash2, Layers, HelpCircle, Video } from "lucide-react";
 
 export default function AdminLessonsPage() {
   const { authHeaders, isBusy, setStatus, setMessage } = useAuth();
-  const { locale, t } = useLocale();
+  const { t } = useLocale();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,7 +70,7 @@ export default function AdminLessonsPage() {
     setMessage("");
 
     try {
-      if (!lessonForm.subjectId) throw new Error(t.admin.chooseSubject);
+      if (!lessonForm.subjectId) throw new Error(t.admin.errorChooseSubject);
 
       const response = await fetch(`${API_URL}/lessons`, {
         method: "POST",
@@ -97,7 +98,7 @@ export default function AdminLessonsPage() {
         passingScore: "70",
       });
       await loadAdminData();
-      setMessage(locale === "ar" ? "تم إنشاء الدرس" : "Leçon créée");
+      setMessage(t.admin.lessonCreated);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -117,7 +118,7 @@ export default function AdminLessonsPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.message || "Request failed");
       await loadAdminData();
-      setMessage(locale === "ar" ? "تم حذف الدرس" : "Leçon supprimée");
+      setMessage(t.admin.lessonDeleted);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -131,7 +132,7 @@ export default function AdminLessonsPage() {
     setMessage("");
 
     try {
-      if (!quizForm.lessonId) throw new Error("Choose a lesson");
+      if (!quizForm.lessonId) throw new Error(t.admin.errorChooseLesson);
 
       const response = await fetch(`${API_URL}/quiz/questions`, {
         method: "POST",
@@ -159,7 +160,7 @@ export default function AdminLessonsPage() {
         correctAnswer: "A",
       });
       await loadAdminData();
-      setMessage(locale === "ar" ? "تمت إضافة سؤال الاختبار" : "Question ajoutée");
+      setMessage(t.admin.quizQuestionAdded);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -179,7 +180,7 @@ export default function AdminLessonsPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.message || "Request failed");
       await loadAdminData();
-      setMessage(locale === "ar" ? "تم حذف سؤال الاختبار" : "Question supprimée");
+      setMessage(t.admin.quizQuestionDeleted);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -191,18 +192,22 @@ export default function AdminLessonsPage() {
     <PageTransition>
       <div className="stack">
         <form className="card admin-form" onSubmit={createLesson}>
-          <h2>{t.admin.createLesson}</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <Video className="w-5 h-5 text-blue-600" />
+            <h2>{t.admin.createLesson}</h2>
+          </div>
           <div className="form-grid">
             <label className="field">
               <span>{t.admin.chooseSubject}</span>
               <select
                 value={lessonForm.subjectId}
                 onChange={(event) => setLessonForm((current) => ({ ...current, subjectId: event.target.value }))}
+                required
               >
                 <option value="">{t.admin.chooseSubject}</option>
                 {subjects.map((subject) => (
                   <option value={subject.id} key={subject.id}>
-                    {subject.name} (Niveau {subject.schoolLevel || 1})
+                    {subject.name} ({t.common.levelBadge(subject.schoolLevel || 1)})
                   </option>
                 ))}
               </select>
@@ -247,18 +252,27 @@ export default function AdminLessonsPage() {
             </label>
           </div>
           <button className="btn btn--primary" disabled={isBusy} type="submit">
-            {isBusy ? <InlineLoader label="Saving..." /> : t.admin.addLesson}
+            {isBusy ? <InlineLoader label={t.common.saving} /> : (
+              <>
+                <Plus className="w-4 h-4" />
+                {t.admin.addLesson}
+              </>
+            )}
           </button>
         </form>
 
         <form className="card admin-form" onSubmit={createQuizQuestion}>
-          <h2>{t.admin.addQuizQuestion}</h2>
+          <div className="flex items-center gap-2 mb-2">
+            <HelpCircle className="w-5 h-5 text-blue-600" />
+            <h2>{t.admin.addQuizQuestion}</h2>
+          </div>
           <div className="form-grid">
             <label className="field">
               <span>{t.admin.chooseLesson}</span>
               <select
                 value={quizForm.lessonId}
                 onChange={(event) => setQuizForm((current) => ({ ...current, lessonId: event.target.value }))}
+                required
               >
                 <option value="">{t.admin.chooseLesson}</option>
                 {lessons.map((lesson) => (
@@ -307,7 +321,12 @@ export default function AdminLessonsPage() {
             </label>
           </div>
           <button className="btn btn--primary" disabled={isBusy} type="submit">
-            {isBusy ? <InlineLoader label="Saving..." /> : t.admin.addQuizQuestion}
+            {isBusy ? <InlineLoader label={t.common.saving} /> : (
+              <>
+                <Plus className="w-4 h-4" />
+                {t.admin.addQuizQuestion}
+              </>
+            )}
           </button>
         </form>
 
@@ -330,7 +349,7 @@ export default function AdminLessonsPage() {
                         fontWeight: '600',
                       }}
                     >
-                      Niveau {subject.schoolLevel || 1}
+                      {t.common.levelBadge(subject.schoolLevel || 1)}
                     </span>
                   </div>
                   <button
@@ -344,6 +363,7 @@ export default function AdminLessonsPage() {
                     }
                     type="button"
                   >
+                    <Plus className="w-4 h-4" />
                     {t.admin.addLesson}
                   </button>
                 </div>
@@ -368,17 +388,19 @@ export default function AdminLessonsPage() {
                               onClick={() => setQuizForm((current) => ({ ...current, lessonId: String(lesson.id) }))}
                               type="button"
                             >
-                              Add quiz here
+                              <HelpCircle className="w-4 h-4" />
+                              {t.admin.addQuizHere}
                             </button>
                             <button className="btn btn--danger" onClick={() => deleteLesson(lesson.id)} type="button">
-                              Delete lesson
+                              <Trash2 className="w-4 h-4" />
+                              {t.admin.deleteLesson}
                             </button>
                           </div>
                         </div>
 
                         <div className="quiz-admin-list">
                           {(lesson.quiz || lesson.questions || []).length === 0 ? (
-                              <p className="muted">{t.common.noLessons}</p>
+                            <p className="muted">{t.admin.noQuizQuestions}</p>
                           ) : (
                             (lesson.quiz || lesson.questions || []).map((question: QuizQuestion) => (
                               <div className="admin-row admin-row--stacked" key={question.id}>
@@ -393,6 +415,7 @@ export default function AdminLessonsPage() {
                                   onClick={() => deleteQuizQuestion(question.id)}
                                   type="button"
                                 >
+                                  <Trash2 className="w-4 h-4" />
                                   {t.admin.delete}
                                 </button>
                               </div>
