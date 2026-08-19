@@ -11,7 +11,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { Plus, Trash2, HelpCircle, Video, Pencil, X } from "lucide-react";
 
 export default function AdminLessonsPage() {
-  const { authHeaders, isBusy, setStatus, setMessage } = useAuth();
+  const { authHeaders, authFetch, isBusy, setStatus, setMessage } = useAuth();
   const { t } = useLocale();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -39,8 +39,8 @@ export default function AdminLessonsPage() {
     setIsLoading(true);
     try {
       const [subjectResponse, lessonResponse] = await Promise.all([
-        fetch(`${API_URL}/subjects`, { headers: authHeaders }),
-        fetch(`${API_URL}/lessons`, { headers: authHeaders }),
+        authFetch(`/subjects`),
+        authFetch(`/lessons`),
       ]);
       const subjectData = await subjectResponse.json().catch(() => null);
       const lessonData = await lessonResponse.json().catch(() => null);
@@ -53,7 +53,7 @@ export default function AdminLessonsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [authHeaders, setMessage]);
+  }, [authHeaders, authFetch, setMessage]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -109,7 +109,7 @@ export default function AdminLessonsPage() {
     try {
       if (!lessonForm.subjectId) throw new Error(t.admin.errorChooseSubject);
 
-      const response = await fetch(`${API_URL}/lessons${editingLessonId ? `/${editingLessonId}` : ""}`, {
+      const response = await authFetch(`/lessons${editingLessonId ? `/${editingLessonId}` : ""}`, {
         method: editingLessonId ? "PATCH" : "POST",
         headers: authHeaders,
         body: JSON.stringify(
@@ -142,7 +142,7 @@ export default function AdminLessonsPage() {
     setMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/lessons/${lessonId}`, {
+      const response = await authFetch(`/lessons/${lessonId}`, {
         method: "DELETE",
         headers: authHeaders,
       });
@@ -165,7 +165,7 @@ export default function AdminLessonsPage() {
     try {
       if (!quizForm.lessonId) throw new Error(t.admin.errorChooseLesson);
 
-      const response = await fetch(`${API_URL}/quiz/questions`, {
+      const response = await authFetch(`/quiz/questions`, {
         method: "POST",
         headers: authHeaders,
         body: JSON.stringify({
@@ -204,7 +204,7 @@ export default function AdminLessonsPage() {
     setMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/quiz/questions/${questionId}`, {
+      const response = await authFetch(`/quiz/questions/${questionId}`, {
         method: "DELETE",
         headers: authHeaders,
       });

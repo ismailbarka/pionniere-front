@@ -23,7 +23,7 @@ const TUTORIAL_VIDEO_ID = "ALzd8UkL9do";
 
 export default function PlacementPage() {
   const router = useRouter();
-  const { token, authHeaders, isBusy, setStatus, setMessage } = useAuth();
+  const { token, authHeaders, authFetch, isBusy, setStatus, setMessage } = useAuth();
   const { t } = useLocale();
 
   const [placementTests, setPlacementTests] = useState<PlacementTest[]>([]);
@@ -35,9 +35,9 @@ export default function PlacementPage() {
       setIsLoading(true);
       setMessage("");
       try {
-        const tests = await request<PlacementTest[]>("/placement-tests", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await authFetch("/placement-tests");
+        const tests = await response.json() as PlacementTest[];
+        if (!response.ok) throw new Error("Unable to load placement tests");
         setPlacementTests(tests);
       } catch (error) {
         setMessage(getErrorMessage(error));
@@ -46,7 +46,7 @@ export default function PlacementPage() {
       }
     }
     if (token) void load();
-  }, [token, setMessage]);
+  }, [token, authFetch, setMessage]);
 
   const totalQuestions = useMemo(
     () => placementTests.reduce((sum, test) => sum + test.questions.length, 0),
@@ -72,11 +72,12 @@ export default function PlacementPage() {
       );
       if (missingAnswer) throw new Error(t.common.answerEveryQuestion);
 
-      await request("/placement-tests/submit-all", {
+      const response = await authFetch("/placement-tests/submit-all", {
         method: "POST",
         headers: authHeaders,
         body: JSON.stringify({ submissions }),
       });
+      if (!response.ok) throw new Error("Unable to submit placement test");
 
       router.push("/subjects?placed=1");
     } catch (error) {

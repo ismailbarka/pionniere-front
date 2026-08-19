@@ -30,7 +30,7 @@ const subjectLucideIcons = [Calculator, Atom, BookMarked, Globe, Code, Palette, 
 
 export default function SubjectsContent() {
   const searchParams = useSearchParams();
-  const { user, token, authHeaders, setMessage } = useAuth();
+  const { user, token, authHeaders, authFetch, setMessage } = useAuth();
   const { locale, t } = useLocale();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,7 +42,7 @@ export default function SubjectsContent() {
       setMessage("");
 
       try {
-        const response = await fetch(`${API_URL}/subjects`, {
+        const response = await authFetch(`/subjects`, {
           headers: authHeaders.Authorization ? authHeaders : { Authorization: `Bearer ${token}` },
         });
         const data = await response.json().catch(() => null);
@@ -59,7 +59,7 @@ export default function SubjectsContent() {
     }
 
     if (token) void load();
-  }, [token, authHeaders, setMessage]);
+  }, [token, authHeaders, authFetch, setMessage]);
 
   return (
     <RequireAuth role="STUDENT">

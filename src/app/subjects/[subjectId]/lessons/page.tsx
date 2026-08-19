@@ -24,7 +24,7 @@ import {
 export default function SubjectLessonsIndexPage() {
   const params = useParams<{ subjectId: string }>();
   const subjectId = Number(params.subjectId);
-  const { authHeaders, setMessage } = useAuth();
+  const { authHeaders, authFetch, setMessage } = useAuth();
   const { t } = useLocale();
   const [subject, setSubject] = useState<Subject | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -37,10 +37,8 @@ export default function SubjectLessonsIndexPage() {
 
       try {
         const [subjectsResponse, lessonsResponse] = await Promise.all([
-          fetch(`${API_URL}/subjects`, { headers: authHeaders }),
-          fetch(`${API_URL}/lessons?subjectId=${subjectId}`, {
-            headers: authHeaders,
-          }),
+          authFetch(`/subjects`),
+          authFetch(`/lessons?subjectId=${subjectId}`),
         ]);
 
         const subjectsData = await subjectsResponse.json().catch(() => null);
@@ -70,7 +68,7 @@ export default function SubjectLessonsIndexPage() {
     }
 
     if (subjectId) void load();
-  }, [authHeaders, subjectId, setMessage]);
+  }, [authHeaders, authFetch, subjectId, setMessage]);
 
   const orderedLessons = [...lessons].sort((a, b) => a.order - b.order);
   const completedCount = orderedLessons.filter((lesson) => lesson.status === "completed").length;

@@ -19,7 +19,7 @@ import {
 } from "lucide-react";
 
 export default function AdminSubjectsPage() {
-  const { authHeaders, isBusy, setStatus, setMessage } = useAuth();
+  const { authHeaders, authFetch, isBusy, setStatus, setMessage } = useAuth();
   const { t } = useLocale();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectName, setSubjectName] = useState("");
@@ -32,9 +32,7 @@ export default function AdminSubjectsPage() {
     setIsLoading(true);
     try {
       const url = filterLevel === "ALL" ? `${API_URL}/subjects` : `${API_URL}/subjects?schoolLevel=${filterLevel}`;
-      const response = await fetch(url, {
-        headers: authHeaders,
-      });
+      const response = await authFetch(url.replace(API_URL, ""));
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.message || "Request failed");
       setSubjects(data as Subject[]);
@@ -43,7 +41,7 @@ export default function AdminSubjectsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [authHeaders, filterLevel, setMessage]);
+  }, [authHeaders, authFetch, filterLevel, setMessage]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -68,7 +66,7 @@ export default function AdminSubjectsPage() {
     setMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/subjects${editingSubjectId ? `/${editingSubjectId}` : ""}`, {
+      const response = await authFetch(`/subjects${editingSubjectId ? `/${editingSubjectId}` : ""}`, {
         method: editingSubjectId ? "PATCH" : "POST",
         headers: authHeaders,
         body: JSON.stringify({ name: subjectName, schoolLevel }),
@@ -91,7 +89,7 @@ export default function AdminSubjectsPage() {
     setMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/subjects/${subjectId}`, {
+      const response = await authFetch(`/subjects/${subjectId}`, {
         method: "DELETE",
         headers: authHeaders,
       });

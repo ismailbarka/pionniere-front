@@ -17,7 +17,7 @@ const emptyPlacementQuestion: PlacementDraftQuestion = {
 };
 
 export default function AdminPlacementPage() {
-  const { authHeaders, isBusy, setStatus, setMessage } = useAuth();
+  const { authHeaders, authFetch, isBusy, setStatus, setMessage } = useAuth();
   const { t } = useLocale();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [placementTests, setPlacementTests] = useState<PlacementTest[]>([]);
@@ -31,8 +31,8 @@ export default function AdminPlacementPage() {
     setIsLoading(true);
     try {
       const [subjectResponse, placementResponse] = await Promise.all([
-        fetch(`${API_URL}/subjects`, { headers: authHeaders }),
-        fetch(`${API_URL}/placement-tests`, { headers: authHeaders }),
+        authFetch(`/subjects`),
+        authFetch(`/placement-tests`),
       ]);
       const subjectData = await subjectResponse.json().catch(() => null);
       const placementData = await placementResponse.json().catch(() => null);
@@ -45,7 +45,7 @@ export default function AdminPlacementPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [authHeaders, setMessage]);
+  }, [authHeaders, authFetch, setMessage]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -86,7 +86,7 @@ export default function AdminPlacementPage() {
         };
       });
 
-      const response = await fetch(`${API_URL}/placement-tests`, {
+      const response = await authFetch(`/placement-tests`, {
         method: "POST",
         headers: authHeaders,
         body: JSON.stringify({
@@ -115,7 +115,7 @@ export default function AdminPlacementPage() {
     setMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/placement-tests/${testId}`, {
+      const response = await authFetch(`/placement-tests/${testId}`, {
         method: "DELETE",
         headers: authHeaders,
       });

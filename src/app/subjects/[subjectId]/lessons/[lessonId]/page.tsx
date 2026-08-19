@@ -54,7 +54,7 @@ export default function LessonDetailPage() {
   const params = useParams<{ subjectId: string; lessonId: string }>();
   const subjectId = Number(params.subjectId);
   const lessonId = Number(params.lessonId);
-  const { authHeaders, isBusy, setStatus, setMessage } = useAuth();
+  const { authHeaders, authFetch, isBusy, setStatus, setMessage } = useAuth();
   const { t } = useLocale();
   const [subject, setSubject] = useState<Subject | null>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
@@ -69,10 +69,8 @@ export default function LessonDetailPage() {
 
       try {
         const [subjectsResponse, lessonsResponse] = await Promise.all([
-          fetch(`${API_URL}/subjects`, { headers: authHeaders }),
-          fetch(`${API_URL}/lessons?subjectId=${subjectId}`, {
-            headers: authHeaders,
-          }),
+          authFetch(`/subjects`),
+          authFetch(`/lessons?subjectId=${subjectId}`),
         ]);
 
         const subjectsData = await subjectsResponse.json().catch(() => null);
@@ -104,7 +102,7 @@ export default function LessonDetailPage() {
     }
 
     if (subjectId) void load();
-  }, [authHeaders, setMessage, subjectId]);
+  }, [authHeaders, authFetch, setMessage, subjectId]);
 
   const orderedLessons = [...lessons].sort((a, b) => a.order - b.order);
   const lessonIndex = orderedLessons.findIndex((item) => item.id === lessonId);
@@ -131,8 +129,8 @@ export default function LessonDetailPage() {
         throw new Error(t.quiz.answerAllPrompt);
       }
 
-      const response = await fetch(
-        `${API_URL}/lessons/${lesson.id}/quiz/submit`,
+      const response = await authFetch(
+        `/lessons/${lesson.id}/quiz/submit`,
         {
           method: "POST",
           headers: authHeaders,
@@ -148,10 +146,7 @@ export default function LessonDetailPage() {
 
       setQuizResults((current) => ({ ...current, [lesson.id]: data as QuizResult }));
 
-      const updatedResponse = await fetch(
-        `${API_URL}/lessons?subjectId=${subjectId}`,
-        { headers: authHeaders },
-      );
+      const updatedResponse = await authFetch(`/lessons?subjectId=${subjectId}`);
       const updatedLessons = await updatedResponse.json().catch(() => null);
       if (updatedResponse.ok) {
         setLessons((updatedLessons as Lesson[]).sort((a, b) => a.order - b.order));
