@@ -211,6 +211,9 @@ export type Messages = {
     levelFilter: (level: number) => string;
     addSubject: string;
     createLesson: string;
+    editLesson: string;
+    saveLesson: string;
+    cancelEdit: string;
     addLesson: string;
     addQuizQuestion: string;
     lessonTitle: string;
@@ -236,6 +239,7 @@ export type Messages = {
     subjectCreated: string;
     subjectDeleted: string;
     lessonCreated: string;
+    lessonUpdated: string;
     lessonDeleted: string;
     quizQuestionAdded: string;
     quizQuestionDeleted: string;
@@ -502,6 +506,9 @@ const messages: Record<Locale, Messages> = {
       levelFilter: (lvl) => `Niveau ${lvl}`,
       addSubject: "Ajouter la matière",
       createLesson: "Ajouter une leçon au programme",
+      editLesson: "Modifier la leçon",
+      saveLesson: "Enregistrer les modifications",
+      cancelEdit: "Annuler",
       addLesson: "Ajouter la leçon",
       addQuizQuestion: "Ajouter une question au quiz",
       lessonTitle: "Titre de la leçon",
@@ -527,6 +534,7 @@ const messages: Record<Locale, Messages> = {
       subjectCreated: "Matière créée avec succès.",
       subjectDeleted: "Matière supprimée avec succès.",
       lessonCreated: "Leçon créée avec succès.",
+      lessonUpdated: "Leçon modifiée avec succès.",
       lessonDeleted: "Leçon supprimée avec succès.",
       quizQuestionAdded: "Question ajoutée au quiz avec succès.",
       quizQuestionDeleted: "Question supprimée avec succès.",
@@ -791,6 +799,9 @@ const messages: Record<Locale, Messages> = {
       levelFilter: (lvl) => `المستوى ${lvl}`,
       addSubject: "إضافة المادة",
       createLesson: "إضافة درس جديد للمنهاج",
+      editLesson: "تعديل الدرس",
+      saveLesson: "حفظ التعديلات",
+      cancelEdit: "إلغاء",
       addLesson: "إضافة الدرس",
       addQuizQuestion: "إضافة سؤال إلى اختبار الدرس",
       lessonTitle: "عنوان الدرس",
@@ -816,6 +827,7 @@ const messages: Record<Locale, Messages> = {
       subjectCreated: "تمت إضافة المادة الدراسية بنجاح.",
       subjectDeleted: "تم حذف المادة الدراسية بنجاح.",
       lessonCreated: "تمت إضافة الدرس بنجاح.",
+      lessonUpdated: "تم تعديل الدرس بنجاح.",
       lessonDeleted: "تم حذف الدرس بنجاح.",
       quizQuestionAdded: "تمت إضافة السؤال بنجاح.",
       quizQuestionDeleted: "تم حذف السؤال بنجاح.",

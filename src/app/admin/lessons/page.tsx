@@ -8,7 +8,7 @@ import { cleanPayload, getErrorMessage } from "@/lib/api";
 import type { AnswerOption, Lesson, QuizQuestion, Subject } from "@/lib/types";
 import { InlineLoader } from "@/components/layout/LoadingOverlay";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { Plus, Trash2, Layers, HelpCircle, Video } from "lucide-react";
+import { Plus, Trash2, HelpCircle, Video, Pencil, X } from "lucide-react";
 
 export default function AdminLessonsPage() {
   const { authHeaders, isBusy, setStatus, setMessage } = useAuth();
@@ -16,6 +16,7 @@ export default function AdminLessonsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [editingLessonId, setEditingLessonId] = useState<number | null>(null);
   const [lessonForm, setLessonForm] = useState({
     subjectId: "",
     title: "",
@@ -64,7 +65,43 @@ export default function AdminLessonsPage() {
     lessons: lessons.filter((lesson) => lesson.subjectId === subject.id),
   }));
 
-  async function createLesson(event: FormEvent<HTMLFormElement>) {
+  function getNextAvailableOrder(subjectId: number, excludedLessonId?: number) {
+    const usedOrders = new Set(
+      lessons
+        .filter((lesson) => lesson.subjectId === subjectId && lesson.id !== excludedLessonId)
+        .map((lesson) => lesson.order),
+    );
+    let nextOrder = 1;
+    while (usedOrders.has(nextOrder)) nextOrder += 1;
+    return String(nextOrder);
+  }
+
+  function resetLessonForm() {
+    setEditingLessonId(null);
+    setLessonForm({
+      subjectId: "",
+      title: "",
+      description: "",
+      youtubeUrl: "",
+      order: "1",
+      passingScore: "70",
+    });
+  }
+
+  function editLesson(lesson: Lesson) {
+    setEditingLessonId(lesson.id);
+    setLessonForm({
+      subjectId: String(lesson.subjectId),
+      title: lesson.title,
+      description: lesson.description ?? "",
+      youtubeUrl: lesson.youtubeUrl ?? "",
+      order: String(lesson.order),
+      passingScore: String(lesson.passingScore ?? 70),
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function saveLesson(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("loading");
     setMessage("");
@@ -72,8 +109,8 @@ export default function AdminLessonsPage() {
     try {
       if (!lessonForm.subjectId) throw new Error(t.admin.errorChooseSubject);
 
-      const response = await fetch(`${API_URL}/lessons`, {
-        method: "POST",
+      const response = await fetch(`${API_URL}/lessons${editingLessonId ? `/${editingLessonId}` : ""}`, {
+        method: editingLessonId ? "PATCH" : "POST",
         headers: authHeaders,
         body: JSON.stringify(
           cleanPayload({
@@ -89,16 +126,10 @@ export default function AdminLessonsPage() {
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.message || "Request failed");
 
-      setLessonForm({
-        subjectId: lessonForm.subjectId,
-        title: "",
-        description: "",
-        youtubeUrl: "",
-        order: "1",
-        passingScore: "70",
-      });
+      const wasEditing = editingLessonId !== null;
+      resetLessonForm();
       await loadAdminData();
-      setMessage(t.admin.lessonCreated);
+      setMessage(wasEditing ? t.admin.lessonUpdated : t.admin.lessonCreated);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -191,17 +222,24 @@ export default function AdminLessonsPage() {
   return (
     <PageTransition>
       <div className="stack">
-        <form className="card admin-form" onSubmit={createLesson}>
+        <form className="card admin-form" onSubmit={saveLesson}>
           <div className="flex items-center gap-2 mb-2">
             <Video className="w-5 h-5 text-blue-600" />
-            <h2>{t.admin.createLesson}</h2>
+            <h2>{editingLessonId ? t.admin.editLesson : t.admin.createLesson}</h2>
           </div>
           <div className="form-grid">
             <label className="field">
               <span>{t.admin.chooseSubject}</span>
               <select
                 value={lessonForm.subjectId}
-                onChange={(event) => setLessonForm((current) => ({ ...current, subjectId: event.target.value }))}
+                onChange={(event) => {
+                  const subjectId = event.target.value;
+                  setLessonForm((current) => ({
+                    ...current,
+                    subjectId,
+                    order: subjectId ? getNextAvailableOrder(Number(subjectId), editingLessonId ?? undefined) : "1",
+                  }));
+                }}
                 required
               >
                 <option value="">{t.admin.chooseSubject}</option>
@@ -238,6 +276,7 @@ export default function AdminLessonsPage() {
               <span>{t.admin.order}</span>
               <input
                 type="number"
+                min="1"
                 value={lessonForm.order}
                 onChange={(event) => setLessonForm((current) => ({ ...current, order: event.target.value }))}
               />
@@ -251,14 +290,22 @@ export default function AdminLessonsPage() {
               />
             </label>
           </div>
+          <div className="button-row">
           <button className="btn btn--primary" disabled={isBusy} type="submit">
             {isBusy ? <InlineLoader label={t.common.saving} /> : (
               <>
-                <Plus className="w-4 h-4" />
-                {t.admin.addLesson}
+                {editingLessonId ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                {editingLessonId ? t.admin.saveLesson : t.admin.addLesson}
               </>
             )}
           </button>
+          {editingLessonId ? (
+            <button className="btn btn--secondary" onClick={resetLessonForm} type="button">
+              <X className="w-4 h-4" />
+              {t.admin.cancelEdit}
+            </button>
+          ) : null}
+          </div>
         </form>
 
         <form className="card admin-form" onSubmit={createQuizQuestion}>
@@ -358,7 +405,7 @@ export default function AdminLessonsPage() {
                       setLessonForm((current) => ({
                         ...current,
                         subjectId: String(subject.id),
-                        order: String(subjectLessons.length + 1),
+                        order: getNextAvailableOrder(subject.id),
                       }))
                     }
                     type="button"
@@ -383,6 +430,10 @@ export default function AdminLessonsPage() {
                             {lesson.description ? <p className="muted">{lesson.description}</p> : null}
                           </div>
                           <div className="button-row">
+                            <button className="btn btn--secondary" onClick={() => editLesson(lesson)} type="button">
+                              <Pencil className="w-4 h-4" />
+                              {t.admin.editLesson}
+                            </button>
                             <button
                               className="btn btn--secondary"
                               onClick={() => setQuizForm((current) => ({ ...current, lessonId: String(lesson.id) }))}
