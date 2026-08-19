@@ -11,6 +11,8 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { 
   Plus, 
   Trash2, 
+  Pencil,
+  X,
   RotateCw, 
   Filter, 
   BookOpen, 
@@ -22,6 +24,7 @@ export default function AdminSubjectsPage() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [subjectName, setSubjectName] = useState("");
   const [schoolLevel, setSchoolLevel] = useState<number>(1);
+  const [editingSubjectId, setEditingSubjectId] = useState<number | null>(null);
   const [filterLevel, setFilterLevel] = useState<number | "ALL">("ALL");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -47,22 +50,35 @@ export default function AdminSubjectsPage() {
     void loadSubjects();
   }, [loadSubjects]);
 
-  async function createSubject(event: FormEvent<HTMLFormElement>) {
+  function resetSubjectForm() {
+    setEditingSubjectId(null);
+    setSubjectName("");
+    setSchoolLevel(1);
+  }
+
+  function editSubject(subject: Subject) {
+    setEditingSubjectId(subject.id);
+    setSubjectName(subject.name);
+    setSchoolLevel(subject.schoolLevel || 1);
+  }
+
+  async function saveSubject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("loading");
     setMessage("");
 
     try {
-      const response = await fetch(`${API_URL}/subjects`, {
-        method: "POST",
+      const response = await fetch(`${API_URL}/subjects${editingSubjectId ? `/${editingSubjectId}` : ""}`, {
+        method: editingSubjectId ? "PATCH" : "POST",
         headers: authHeaders,
         body: JSON.stringify({ name: subjectName, schoolLevel }),
       });
       const data = await response.json().catch(() => null);
       if (!response.ok) throw new Error(data?.message || "Request failed");
-      setSubjectName("");
+      const wasEditing = editingSubjectId !== null;
+      resetSubjectForm();
       await loadSubjects();
-      setMessage(t.admin.subjectCreated);
+      setMessage(wasEditing ? t.admin.subjectUpdated : t.admin.subjectCreated);
     } catch (error) {
       setMessage(getErrorMessage(error));
     } finally {
@@ -93,10 +109,10 @@ export default function AdminSubjectsPage() {
   return (
     <PageTransition>
       <div className="admin-grid">
-        <form className="card admin-form" onSubmit={createSubject}>
+        <form className="card admin-form" onSubmit={saveSubject}>
           <div className="flex items-center gap-2 mb-2">
-            <Plus className="w-5 h-5 text-blue-600" />
-            <h2>{t.admin.createSubject}</h2>
+            {editingSubjectId ? <Pencil className="w-5 h-5 text-blue-600" /> : <Plus className="w-5 h-5 text-blue-600" />}
+            <h2>{editingSubjectId ? t.admin.editSubject : t.admin.createSubject}</h2>
           </div>
           <label className="field">
             <span>{t.admin.subjectName}</span>
@@ -128,16 +144,24 @@ export default function AdminSubjectsPage() {
               ))}
             </select>
           </label>
-          <button className="btn btn--primary" disabled={isBusy} type="submit" style={{ marginTop: '12px' }}>
+          <div className="button-row" style={{ marginTop: '12px' }}>
+          <button className="btn btn--primary" disabled={isBusy} type="submit">
             {isBusy ? (
               <InlineLoader label={t.common.saving} />
             ) : (
               <>
-                <Plus className="w-4 h-4" />
-                {t.admin.addSubject}
+                {editingSubjectId ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                {editingSubjectId ? t.admin.saveSubject : t.admin.addSubject}
               </>
             )}
           </button>
+          {editingSubjectId ? (
+            <button className="btn btn--secondary" onClick={resetSubjectForm} type="button">
+              <X className="w-4 h-4" />
+              {t.admin.cancelEdit}
+            </button>
+          ) : null}
+          </div>
         </form>
 
         <div className="card">
@@ -199,10 +223,16 @@ export default function AdminSubjectsPage() {
                       {t.common.levelBadge(subject.schoolLevel || 1)}
                     </span>
                   </div>
-                  <button className="btn btn--danger" onClick={() => deleteSubject(subject.id)} type="button">
-                    <Trash2 className="w-4 h-4" />
-                    {t.admin.delete}
-                  </button>
+                  <div className="button-row">
+                    <button className="btn btn--secondary" onClick={() => editSubject(subject)} type="button">
+                      <Pencil className="w-4 h-4" />
+                      {t.admin.editSubject}
+                    </button>
+                    <button className="btn btn--danger" onClick={() => deleteSubject(subject.id)} type="button">
+                      <Trash2 className="w-4 h-4" />
+                      {t.admin.delete}
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
