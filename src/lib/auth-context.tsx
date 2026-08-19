@@ -272,12 +272,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           body: JSON.stringify({ username, schoolLevel }),
         });
         const data = await response.json().catch(() => null) as {
-          profileCompleted: boolean;
-          requiresPlacementTest: boolean;
-          nextStep: string;
-          user: User;
-        };
-        if (!response.ok) throw new Error(data?.user ? "Unable to complete profile" : "Unable to complete profile");
+          profileCompleted?: boolean;
+          requiresPlacementTest?: boolean;
+          nextStep?: string;
+          user?: User;
+          message?: string | string[];
+        } | null;
+
+        if (!response.ok) {
+          const text = Array.isArray(data?.message) ? data.message.join(", ") : data?.message;
+          throw new Error(text || "Unable to complete profile");
+        }
+
+        if (!data?.user) {
+          throw new Error("Unable to complete profile");
+        }
 
         setUser(data.user);
         window.localStorage.setItem("edu_user", JSON.stringify(data.user));
@@ -285,8 +294,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await routeAfterLogin(
           token,
           data.user,
-          data.requiresPlacementTest,
-          data.nextStep,
+          Boolean(data.requiresPlacementTest),
+          data.nextStep || "",
         );
       } catch (error) {
         setMessage(getErrorMessage(error));
