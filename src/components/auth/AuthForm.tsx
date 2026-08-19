@@ -49,8 +49,12 @@ export function AuthForm({ initialMode = "login", switchHref }: AuthFormProps) {
     script.onload = () => {
       if (window.google?.accounts?.id) {
         if (!window.__googleGsiInitialized) {
+          const googleClientId =
+            process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+            "283771604701-p0qc84oc0i4jka8qhe3jbgrv6otd2dak.apps.googleusercontent.com";
+
           window.google.accounts.id.initialize({
-            client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "",
+            client_id: googleClientId,
             callback: (response: { credential?: string }) => {
               if (response.credential) {
                 void googleLogin(response.credential);
