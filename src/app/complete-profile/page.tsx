@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { FormEvent, useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { useLocale } from "@/lib/i18n";
@@ -25,6 +26,16 @@ function CompleteProfileForm() {
         <FadeIn>
           <form className="auth-card" onSubmit={handleSubmit} style={{ maxWidth: '520px', margin: '0 auto', width: '100%' }}>
             <div className="auth-card__body">
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+                <Image
+                  src="/learning-illustration.jpg"
+                  alt="Profile Setup"
+                  width={120}
+                  height={120}
+                  className="rounded-2xl shadow-sm object-contain"
+                  priority
+                />
+              </div>
               <div className="auth-card__intro">
                 <p className="auth-card__eyebrow">
                   <Sparkles className="w-3.5 h-3.5 inline mr-1" />

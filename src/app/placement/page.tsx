@@ -95,25 +95,39 @@ export default function PlacementPage() {
         <PageTransition>
           <section className="page-shell">
             <header className="page-header">
-              <div>
-                <p className="eyebrow">
-                  <Target className="w-3.5 h-3.5" />
-                  {t.placement.eyebrow}
-                </p>
-                <h1>{t.placement.title}</h1>
-                <p className="page-header__lead">{t.placement.lead}</p>
-              </div>
-
-              {totalQuestions > 0 && (
-                <div className="quiz-progress" style={{ minWidth: 220 }}>
-                  <div className="quiz-progress__bar">
-                    <span style={{ width: `${progressPct}%` }} />
-                  </div>
-                  <small>
-                    {t.placement.progressText(answeredCount, totalQuestions, progressPct)}
-                  </small>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px', width: '100%' }}>
+                <div>
+                  <p className="eyebrow">
+                    <Target className="w-3.5 h-3.5" />
+                    {t.placement.eyebrow}
+                  </p>
+                  <h1>{t.placement.title}</h1>
+                  <p className="page-header__lead">{t.placement.lead}</p>
                 </div>
-              )}
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+                  {totalQuestions > 0 && (
+                    <div className="quiz-progress" style={{ minWidth: 200 }}>
+                      <div className="quiz-progress__bar">
+                        <span style={{ width: `${progressPct}%` }} />
+                      </div>
+                      <small>
+                        {t.placement.progressText(answeredCount, totalQuestions, progressPct)}
+                      </small>
+                    </div>
+                  )}
+                  <div className="page-header__illustration-box">
+                    <Image
+                      src="/quiz-illustration.jpg"
+                      alt="Placement Quiz Illustration"
+                      width={110}
+                      height={110}
+                      className="page-header__illustration"
+                      priority
+                    />
+                  </div>
+                </div>
+              </div>
             </header>
 
             {/* Video / how-it-works section */}

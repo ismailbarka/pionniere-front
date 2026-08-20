@@ -69,34 +69,46 @@ export default function SubjectsContent() {
         <PageTransition>
           <section className="page-shell">
             <header className="page-header">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', width: '100%' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', width: '100%' }}>
                 <div>
-                  <p className="eyebrow flex flex-col items-center gap-2">
+                  <p className="eyebrow flex items-center gap-2">
                     <BookOpen className="w-3.5 h-3.5" />
                     {t.common.lessonPath}
                   </p>
                   <h1>{t.subjects.title}</h1>
                   <p className="page-header__lead">{t.subjects.lead}</p>
+                  {user?.schoolLevel ? (
+                    <div style={{ marginTop: '12px' }}>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          padding: '8px 18px',
+                          borderRadius: '9999px',
+                          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.12))',
+                          border: '1px solid rgba(59, 130, 246, 0.3)',
+                          color: 'var(--primary-hover)',
+                          fontWeight: '700',
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        <GraduationCap className="w-4 h-4 text-blue-600" />
+                        {t.levels[user.schoolLevel] || t.common.levelBadge(user.schoolLevel)}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
-                {user?.schoolLevel ? (
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: '8px 18px',
-                      borderRadius: '9999px',
-                      background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(99, 102, 241, 0.12))',
-                      border: '1px solid rgba(59, 130, 246, 0.3)',
-                      color: 'var(--primary-hover)',
-                      fontWeight: '700',
-                      fontSize: '0.9rem'
-                    }}
-                  >
-                    <GraduationCap className="w-4 h-4 text-blue-600" />
-                    {t.levels[user.schoolLevel] || t.common.levelBadge(user.schoolLevel)}
-                  </span>
-                ) : null}
+                <div className="page-header__illustration-box">
+                  <Image
+                    src="/learning-illustration.jpg"
+                    alt="Learning Curriculum"
+                    width={130}
+                    height={130}
+                    className="page-header__illustration"
+                    priority
+                  />
+                </div>
               </div>
             </header>
 

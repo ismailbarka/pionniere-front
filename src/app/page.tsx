@@ -119,7 +119,7 @@ export default function HomePage() {
                 alt="Daam Éducation - Plateforme d'apprentissage primaire"
                 width={360}
                 height={360}
-                className="object-contain"
+                className="object-contain rounded-2xl"
                 priority
               />
             </div>

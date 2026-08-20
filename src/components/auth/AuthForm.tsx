@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
 import type { AuthMode } from "@/lib/types";
 import { useLocale } from "@/lib/i18n";
@@ -104,6 +105,16 @@ export function AuthForm({ initialMode = "login", switchHref }: AuthFormProps) {
       <section className="auth-shell">
         <FadeIn>
           <div className="auth-hero">
+            <div className="auth-hero__illustration-wrapper">
+              <Image
+                src="/auth-illustration.jpg"
+                alt="Education Illustration"
+                width={240}
+                height={240}
+                className="auth-hero__illustration"
+                priority
+              />
+            </div>
             <h1>{isLogin ? t.auth.loginTitle : t.auth.signupTitle}</h1>
             <p className="auth-hero__copy">{isLogin ? t.auth.loginCopy : t.auth.signupCopy}</p>
             <div className="auth-hero__stats">
