@@ -136,15 +136,14 @@ export function AppHeader() {
                   <div className="user-dropdown__divider" />
 
                   {/* Settings */}
-                  <button
-                    type="button"
-                    className="user-dropdown__item user-dropdown__item--disabled"
-                    disabled
-                    title={t.nav.comingSoon}
+                  <Link
+                    href="/settings"
+                    className="user-dropdown__item"
+                    onClick={() => setProfileOpen(false)}
                   >
                     <Settings className="w-4 h-4" />
                     <span>{t.nav.settings}</span>
-                  </button>
+                  </Link>
 
                   <div className="user-dropdown__divider" />
 
@@ -257,6 +256,15 @@ export function AppHeader() {
                       </span>
                     </div>
                   </div>
+                  <Link
+                    href="/settings"
+                    className="btn btn--ghost mobile-drawer__btn"
+                    onClick={() => setMenuOpen(false)}
+                    style={{ marginBottom: "8px" }}
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>{t.nav.settings}</span>
+                  </Link>
                   <button
                     type="button"
                     className="btn btn--ghost mobile-drawer__btn"

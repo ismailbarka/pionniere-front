@@ -28,6 +28,7 @@ type AuthContextValue = {
   register: (email: string, password: string) => Promise<void>;
   googleLogin: (idToken: string) => Promise<void>;
   completeProfile: (username: string, schoolLevel: number) => Promise<void>;
+  updateLevel: (schoolLevel: number) => Promise<void>;
   resendVerification: (email: string) => Promise<void>;
   logout: () => void;
   apiRequest: <T>(path: string, options?: RequestInit) => Promise<T>;
@@ -328,6 +329,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const updateLevel = useCallback(
+    async (schoolLevel: number) => {
+      setStatus("loading");
+      setMessage("");
+      try {
+        const updatedUser = await apiRequest<User>("/users/me/level", {
+          method: "PATCH",
+          body: JSON.stringify({ schoolLevel }),
+        });
+        setUser(updatedUser);
+        window.localStorage.setItem("edu_user", JSON.stringify(updatedUser));
+      } catch (error) {
+        setMessage(getErrorMessage(error));
+        throw error;
+      } finally {
+        setStatus("idle");
+      }
+    },
+    [apiRequest],
+  );
+
   useEffect(() => {
     let active = true;
 
@@ -390,6 +412,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       googleLogin,
       completeProfile,
+      updateLevel,
       resendVerification,
       logout,
       apiRequest,
@@ -406,6 +429,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       googleLogin,
       completeProfile,
+      updateLevel,
       resendVerification,
       logout,
       apiRequest,

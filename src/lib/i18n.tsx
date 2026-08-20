@@ -261,6 +261,16 @@ export type Messages = {
     admin: string;
     student: string;
   };
+  settings: {
+    title: string;
+    lead: string;
+    currentLevel: string;
+    selectLevel: string;
+    save: string;
+    saving: string;
+    success: string;
+    backToSubjects: string;
+  };
 };
 
 const messages: Record<Locale, Messages> = {
@@ -559,6 +569,16 @@ const messages: Record<Locale, Messages> = {
       admin: "Administrateur / Enseignant",
       student: "Élève",
     },
+    settings: {
+      title: "Paramètres",
+      lead: "Modifiez votre niveau scolaire pour accéder aux leçons correspondantes.",
+      currentLevel: "Votre niveau actuel",
+      selectLevel: "Choisir un nouveau niveau",
+      save: "Enregistrer",
+      saving: "Enregistrement…",
+      success: "Votre niveau a été mis à jour avec succès.",
+      backToSubjects: "Retour aux matières",
+    },
   },
   ar: {
     nav: {
@@ -854,6 +874,16 @@ const messages: Record<Locale, Messages> = {
     role: {
       admin: "أستاذ / مشرف تربوي",
       student: "تلميذ",
+    },
+    settings: {
+      title: "الإعدادات",
+      lead: "قم بتغيير مستواك الدراسي للوصول إلى الدروس المناسبة.",
+      currentLevel: "مستواك الحالي",
+      selectLevel: "اختر مستوى جديد",
+      save: "حفظ",
+      saving: "جارٍ الحفظ…",
+      success: "تم تحديث مستواك الدراسي بنجاح.",
+      backToSubjects: "العودة إلى المواد",
     },
   },
 };
